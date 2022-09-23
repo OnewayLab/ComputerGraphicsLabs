@@ -30,7 +30,7 @@ void main()
 }
 ```
 
-![image-20220904233502034](Assignment 0.assets/image-20220904233502034.png)
+![image-20220904233502034](assets/image-20220904233502034.png)
 
 ## Task 3
 
@@ -112,10 +112,10 @@ void main()
 
 | s\t                      | `GL_REPEAT`                                                  | `GL_MIRRORED_REPEAT`                                         | `GL_CLAMP_TO_EDGE`                                           | `GL_CLAMP_TO_BORDER`                                         |
 | ------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| **`GL_REPEAT`**          | ![image-20220906092139906](Assignment 0.assets/image-20220906092139906.png) | ![image-20220906092254218](Assignment 0.assets/image-20220906092254218.png) | ![image-20220906092336314](Assignment 0.assets/image-20220906092336314.png) | ![image-20220906092411317](Assignment 0.assets/image-20220906092411317.png) |
-| **`GL_MIRRORED_REPEAT`** | ![image-20220906092446108](Assignment 0.assets/image-20220906092446108.png) | ![image-20220906092517499](Assignment 0.assets/image-20220906092517499.png) | ![image-20220906092648601](Assignment 0.assets/image-20220906092648601.png) | ![image-20220906092746834](Assignment 0.assets/image-20220906092746834.png) |
-| **`GL_CLAMP_TO_EDGE`**   | ![image-20220906093008250](Assignment 0.assets/image-20220906093008250.png) | ![image-20220906092917161](Assignment 0.assets/image-20220906092917161.png) | ![image-20220906092855397](Assignment 0.assets/image-20220906092855397.png) | ![image-20220906092831624](Assignment 0.assets/image-20220906092831624.png) |
-| **`GL_CLAMP_TO_BORDER`** | ![image-20220906093216044](Assignment 0.assets/image-20220906093216044.png) | ![image-20220906093517811](Assignment 0.assets/image-20220906093517811.png) | ![image-20220906093538722](Assignment 0.assets/image-20220906093538722.png) | ![image-20220906093557709](Assignment 0.assets/image-20220906093557709.png) |
+| **`GL_REPEAT`**          | ![image-20220906092139906](assets/image-20220906092139906.png) | ![image-20220906092254218](assets/image-20220906092254218.png) | ![image-20220906092336314](assets/image-20220906092336314.png) | ![image-20220906092411317](assets/image-20220906092411317.png) |
+| **`GL_MIRRORED_REPEAT`** | ![image-20220906092446108](assets/image-20220906092446108.png) | ![image-20220906092517499](assets/image-20220906092517499.png) | ![image-20220906092648601](assets/image-20220906092648601.png) | ![image-20220906092746834](assets/image-20220906092746834.png) |
+| **`GL_CLAMP_TO_EDGE`**   | ![image-20220906093008250](assets/image-20220906093008250.png) | ![image-20220906092917161](assets/image-20220906092917161.png) | ![image-20220906092855397](assets/image-20220906092855397.png) | ![image-20220906092831624](assets/image-20220906092831624.png) |
+| **`GL_CLAMP_TO_BORDER`** | ![image-20220906093216044](assets/image-20220906093216044.png) | ![image-20220906093517811](assets/image-20220906093517811.png) | ![image-20220906093538722](assets/image-20220906093538722.png) | ![image-20220906093557709](assets/image-20220906093557709.png) |
 
 ## Task 4
 
@@ -123,31 +123,31 @@ void main()
 
 FoV 是 `perspective` 函数的第一个参数，用来表示视野大小，即平截头体侧面两条楞的夹角，如下图所示：
 
-![ perspective_frustum](Assignment 0.assets/perspective_frustum.png)
+![ perspective_frustum](assets/perspective_frustum.png)
 
 教程中把 FoV 的值设为 45 度，效果如下：
 
-![image-20220907215928568](Assignment 0.assets/image-20220907215928568.png)
+![image-20220907215928568](assets/image-20220907215928568.png)
 
 减小 FoV 即减小平截头体两条侧棱的夹角，从而减小底面积，即减小了视野，当窗口大小固定时，物体看起来被放大了，下面是将 FoV 减小到 20 度的效果：
 
-![image-20220907220148402](Assignment 0.assets/image-20220907220148402.png)
+![image-20220907220148402](assets/image-20220907220148402.png)
 
 反之，增大 FoV 将增加视野中的东西，所以物体看起来被缩小了，下面是将 FoV 增大到 70 度的效果：
 
-![image-20220907220758335](Assignment 0.assets/image-20220907220758335.png)
+![image-20220907220758335](assets/image-20220907220758335.png)
 
 aspect-ratio 是 perspective 函数的第二个参数，它设置了视野的宽高比，即平截头体底面的宽高比，教程中把它设为视口的宽除以高，此时即使视口并不是正方形，但我们依然能够将箱子的侧面正确渲染为正方形，效果如下：
 
-![image-20220907221535509](Assignment 0.assets/image-20220907221535509.png)
+![image-20220907221535509](assets/image-20220907221535509.png)
 
 如果我们修改这个参数，使得平截头体的宽高比增大，也就是在横向上有更大的视野，那么我们在横向上就能够看到更多东西，但是当渲染的结果显示在视口上时，物体就像被横向压缩了一样：
 
-![image-20220907221809794](Assignment 0.assets/image-20220907221809794.png)
+![image-20220907221809794](assets/image-20220907221809794.png)
 
 同理，如果减小平截头体的宽高比，物体就像在横向上被拉伸了：
 
-![image-20220907221926150](Assignment 0.assets/image-20220907221926150.png)
+![image-20220907221926150](assets/image-20220907221926150.png)
 
 ## Task 5
 
@@ -155,55 +155,55 @@ aspect-ratio 是 perspective 函数的第二个参数，它设置了视野的宽
 
 1. 你好，窗口
 
-   ![image-20220904125652403](Assignment 0.assets/image-20220904125652403.png)
+   ![image-20220904125652403](assets/image-20220904125652403.png)
 
 2. 你好，三角形
 
-   ![image-20220904164610003](Assignment 0.assets/image-20220904164610003.png)
+   ![image-20220904164610003](assets/image-20220904164610003.png)
 
-   ![image-20220904170746458](Assignment 0.assets/image-20220904170746458.png)
+   ![image-20220904170746458](assets/image-20220904170746458.png)
 
-   ![image-20220904170818030](Assignment 0.assets/image-20220904170818030.png)
+   ![image-20220904170818030](assets/image-20220904170818030.png)
 
 3. 着色器
 
-   ![image-20220904200235255](Assignment 0.assets/image-20220904200235255.png)
+   ![image-20220904200235255](assets/image-20220904200235255.png)
 
-   ![image-20220904221809858](Assignment 0.assets/image-20220904221809858.png)
+   ![image-20220904221809858](assets/image-20220904221809858.png)
 
-   ![image-20220904223826108](Assignment 0.assets/image-20220904223826108.png)
+   ![image-20220904223826108](assets/image-20220904223826108.png)
 
 4. 纹理
 
-   ![image-20220905221020201](Assignment 0.assets/image-20220905221020201.png)
+   ![image-20220905221020201](assets/image-20220905221020201.png)
 
-   ![image-20220905221431052](Assignment 0.assets/image-20220905221431052.png)
+   ![image-20220905221431052](assets/image-20220905221431052.png)
 
-   ![image-20220905223919307](Assignment 0.assets/image-20220905223919307.png)
+   ![image-20220905223919307](assets/image-20220905223919307.png)
 
 5. 变换
 
-   ![image-20220906131827627](Assignment 0.assets/image-20220906131827627.png)
+   ![image-20220906131827627](assets/image-20220906131827627.png)
 
-   ![image-20220906165440894](Assignment 0.assets/image-20220906165440894.png)
+   ![image-20220906165440894](assets/image-20220906165440894.png)
 
-   ![image-20220906172147097](Assignment 0.assets/image-20220906172147097.png)
+   ![image-20220906172147097](assets/image-20220906172147097.png)
 
-   ![image-20220906173536884](Assignment 0.assets/image-20220906173536884.png)
+   ![image-20220906173536884](assets/image-20220906173536884.png)
 
 6. 摄像机
 
    * 摄像机绕一个圆旋转：
 
-     ![image-20220906201755631](Assignment 0.assets/image-20220906201755631.png)
+     ![image-20220906201755631](assets/image-20220906201755631.png)
 
    * 使用键盘控制摄像机移动：
 
-     ![image-20220906224321448](Assignment 0.assets/image-20220906224321448.png)
+     ![image-20220906224321448](assets/image-20220906224321448.png)
 
    * 使用鼠标控制摄像机视角和缩放：
 
-     ![image-20220906231514932](Assignment 0.assets/image-20220906231514932.png)
+     ![image-20220906231514932](assets/image-20220906231514932.png)
 
      
 
