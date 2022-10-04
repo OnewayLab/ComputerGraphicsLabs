@@ -55,8 +55,8 @@ aux_source_directory(./src/ DIR_SRCS)
 add_executable(${PROJECT_NAME} ${DIR_SRCS} ${HEADERS})
 
 # link the target with the SDL2
-target_link_libraries( ${PROJECT_NAME} 
-    PRIVATE 
+target_link_libraries( ${PROJECT_NAME}
+    PRIVATE
         SDL2
 	SDL2main
 )

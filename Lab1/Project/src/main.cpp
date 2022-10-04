@@ -50,8 +50,8 @@ int main(int argc, char* args[])
 
 	// Task 6: try it with different kind of projection
 	{
-		renderer->setProjectMatrix(TRRenderer::calcPerspProjectMatrix(45.0f, static_cast<float>(width) / height, 0.1f, 10.0f));
-		//renderer->setProjectMatrix(TRRenderer::calcOrthoProjectMatrix(-2.0f, +2.0f, -2.0f, +2.0f, 0.1f, 10.0f));
+		// renderer->setProjectMatrix(TRRenderer::calcPerspProjectMatrix(45.0f, static_cast<float>(width) / height, 0.1f, 10.0f));
+		renderer->setProjectMatrix(TRRenderer::calcOrthoProjectMatrix(-2.0f, +2.0f, -2.0f, +2.0f, 0.1f, 10.0f));
 	}
 
 	//Load the rendering data
@@ -79,17 +79,30 @@ int main(int argc, char* args[])
 		{
 			static glm::mat4 model_mat = glm::mat4(1.0f);
 
-			//Rotation
-			{
-				//Task 4: Make the model rotate around x axis and z axis, respectively
-				model_mat = glm::rotate(model_mat, (float)deltaTime * 0.001f, glm::vec3(0, 1, 0));
-			}
+			// //Rotation
+			// {
+			// 	//Task 4: Make the model rotate around x axis and z axis, respectively
+			// 	model_mat = glm::rotate(model_mat, (float)deltaTime * 0.001f, glm::vec3(0, 1, 0));
+			// }
 
-			//Scale
-			{
-				//Task 5: Implement the scale up and down animation using glm::scale function
-
-			}
+			// //Scale
+			// {
+			// 	//Task 5: Implement the scale up and down animation using glm::scale function
+            //     static float scale = 1.0f;
+			// 	static bool larger = true;
+			// 	if (larger) {
+			// 		scale += (float)deltaTime * 0.001f;
+			// 		model_mat = glm::scale(model_mat, 1.0f + glm::vec3((float)deltaTime * 0.001f));
+			// 	} else {
+			// 		scale -= (float)deltaTime * 0.001f;
+			// 		model_mat = glm::scale(model_mat, 1.0f - glm::vec3((float)deltaTime * 0.001f));
+			// 	}
+			// 	if (scale > 2.0f) {
+			// 		larger = false;
+			// 	} else if (scale < 1.0f) {
+			// 		larger = true;
+			// 	}
+			// }
 
 			renderer->setModelMatrix(model_mat);
 		}

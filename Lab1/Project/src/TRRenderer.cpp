@@ -80,7 +80,7 @@ namespace TinyRenderer
 		{
 			m_shader_handler = std::make_shared<TRDefaultShaderPipeline>();
 		}
-		
+
 		//Load the matrices
 		m_shader_handler->setModelMatrix(m_modelMatrix);
 		m_shader_handler->setViewProjectMatrix(m_projectMatrix * m_viewMatrix);
@@ -146,7 +146,7 @@ namespace TinyRenderer
 					v[0].spos = glm::ivec2(m_viewportMatrix * v[0].cpos);
 					v[1].spos = glm::ivec2(m_viewportMatrix * v[1].cpos);
 					v[2].spos = glm::ivec2(m_viewportMatrix * v[2].cpos);
-					rasterized_points = m_shader_handler->rasterize_wire(v[0], v[1], v[2], 
+					rasterized_points = m_shader_handler->rasterize_wire(v[0], v[1], v[2],
 						m_backBuffer->getWidth(), m_backBuffer->getHeight());
 				}
 
@@ -173,7 +173,7 @@ namespace TinyRenderer
 		{
 			std::swap(m_backBuffer, m_frontBuffer);
 		}
-		
+
 	}
 
 	unsigned char* TRRenderer::commitRenderedColorBuffer()
@@ -200,6 +200,25 @@ namespace TinyRenderer
 		//Task 1: Implement the calculation of view matrix, and then set it to vMat
 		//  Note: You can use any glm function (such as glm::normalize, glm::cross, glm::dot) except glm::lookAt
 
+		// 1. Calculate the camera's local coordinate system
+		glm::vec3 zAxis = glm::normalize(camera - target);
+		glm::vec3 xAxis = glm::normalize(glm::cross(worldUp, zAxis));
+		glm::vec3 yAxis = glm::cross(zAxis, xAxis);
+
+		// 2. Calculate the view matrix
+		vMat[0][0] = xAxis.x;
+		vMat[1][0] = xAxis.y;
+		vMat[2][0] = xAxis.z;
+		vMat[0][1] = yAxis.x;
+		vMat[1][1] = yAxis.y;
+		vMat[2][1] = yAxis.z;
+		vMat[0][2] = zAxis.x;
+		vMat[1][2] = zAxis.y;
+		vMat[2][2] = zAxis.z;
+		vMat[3][0] = -glm::dot(xAxis, camera);
+		vMat[3][1] = -glm::dot(yAxis, camera);
+		vMat[3][2] = -glm::dot(zAxis, camera);
+
 		return vMat;
 	}
 
@@ -210,7 +229,13 @@ namespace TinyRenderer
 
 		//Task 2: Implement the calculation of perspective matrix, and then set it to pMat
 		//  Note: You can use any math function (such as std::tan) except glm::perspective
+		float f = 1.0f / std::tan(fovy / 2.0f);
 
+		pMat[0][0] = f / aspect;
+		pMat[1][1] = f;
+		pMat[2][2] = -(far + near) / (far - near);
+		pMat[2][3] = -1.0f;
+		pMat[3][2] = -(2.0f * far * near) / (far-near);
 		return pMat;
 	}
 
@@ -220,6 +245,12 @@ namespace TinyRenderer
 		glm::mat4 vpMat = glm::mat4(1.0f);
 
 		//Task 3: Implement the calculation of viewport matrix, and then set it to vpMat
+		vpMat[0][0] = width / 2.0f;
+		vpMat[1][1] = -height / 2.0f;
+		vpMat[2][2] = 1.0f;
+		vpMat[3][0] = width / 2.0f;
+		vpMat[3][1] = height / 2.0f;
+		vpMat[3][2] = 1.0f;
 
 		return vpMat;
 	}
@@ -230,7 +261,11 @@ namespace TinyRenderer
 		glm::mat4 pMat = glm::mat4(1.0f);
 
 		//Task 6: Implement the calculation of orthogonal projection, and then set it to pMat
-		
+		pMat[0][0] = 2.0f / (right - left);
+		pMat[1][1] = 2.0f / (top - bottom);
+		pMat[2][2] = -2.0f / (far - near);
+		pMat[3][2] = -(far + near) / (far - near);
+
 		return pMat;
 	}
 
