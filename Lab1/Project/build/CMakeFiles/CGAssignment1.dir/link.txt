@@ -1,1 +1,0 @@
-/usr/bin/c++ -O3 -DNDEBUG CMakeFiles/CGAssignment1.dir/src/TRDrawableMesh.cpp.o CMakeFiles/CGAssignment1.dir/src/TRFrameBuffer.cpp.o CMakeFiles/CGAssignment1.dir/src/TRRenderer.cpp.o CMakeFiles/CGAssignment1.dir/src/TRShaderPipeline.cpp.o CMakeFiles/CGAssignment1.dir/src/TRWindowsApp.cpp.o CMakeFiles/CGAssignment1.dir/src/main.cpp.o -o CGAssignment1  -lSDL2 -lSDL2main 
