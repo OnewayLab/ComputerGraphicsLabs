@@ -82,58 +82,16 @@ vMat[3][2] = -glm::dot(zAxis, camera);
 
 **实现透视投影矩阵的计算**
 
-投影矩阵的作用是把三维空间中的物体投影到二维平面。一个视锥体可以用六个参数表示 `left`、`right`、`bottom`、`top`、`near` 和 `far`，分别表示视锥体的六个面。
+投影矩阵的作用是把三维空间中的物体投影到二维平面。一个视锥体可以用六个参数表示 $left$、$right$、$bottom$、$top$、$near$ 和 $far$ 来表示视锥体的六个面。
 
-我们首先将视锥体中的点 $(x_e,y_e,z_e)$ 投影到视锥体的近平面上 $(x_p,y_p,-n)$ 处，则有：
+在下面的推导中，我们规定下标为 $e$ 表示视图空间中的齐次坐标，下标为 $p$ 表示视图空间中的点投影到视锥体近平面后的坐标，下标为 $c$ 表示裁剪空间中的齐次坐标，下标为 $n$ 表示裁剪空间中的标准设备坐标。
+
+我们首先将视锥体中的点 $(x_e,y_e,z_e)$ 投影到视锥体的近平面上 $(x_p,y_p,-near)$ 处，则有：
 $$
 \begin{array}{l}
 \frac{x_{p}}{x_{e}}=\frac{-near}{z_{e}} \rightarrow x_{p}=\frac{-near \cdot x_{e}}{z_{e}}=\frac{near \cdot x_{e}}{-z_{e}} \\
 \frac{y_{p}}{y_{e}}=\frac{-near}{y_{e}} \rightarrow y_{p}=\frac{-near \cdot y_{e}}{z_{e}}=\frac{near \cdot y_{e}}{-z_{e}}
 \end{array}
-$$
-上面两个式子分母都是 $-z_e$，这与在裁剪空间中对顶点做透视除法相对应。透视投影，然后做透视除法如下面两个公式所示：
-$$
-\begin{array}{c}
-\left(\begin{array}{c}
-x_{c l i p} \\
-y_{c l i p} \\
-z_{\text {clip }} \\
-w_{c l i p}
-\end{array}\right)=M_{\text {projection }} \cdot\left(\begin{array}{l}
-x_{\text {eye }} \\
-y_{\text {eye }} \\
-z_{\text {eye }} \\
-w_{\text {eye }}
-\end{array}\right) \\
-\left(\begin{array}{l}
-x_{n d c} \\
-y_{n d c} \\
-z_{n d c}
-\end{array}\right)=\left(\begin{array}{l}
-x_{c l i p} / w_{c l i p} \\
-y_{c l i p} / w_{c l i p} \\
-z_{c l i p} / w_{c l i p}
-\end{array}\right)
-\end{array}
-$$
-为了便于构建矩阵，我们令裁剪空间中的 $w_{clip}=-z_e$，将除以 $-z_e$ 这一步放到透视除法去做，故目前透视矩阵变为：
-$$
-\left(\begin{array}{l}
-x_{c} \\
-y_{c} \\
-z_{c} \\
-w_{c}
-\end{array}\right)=\left(\begin{array}{cccc}
-\cdot & \cdot & \cdot & \cdot \\
-\cdot & \cdot & \cdot & \cdot \\
-\cdot & \cdot & \cdot & \cdot \\
-0 & 0 & -1 & 0
-\end{array}\right)\left(\begin{array}{l}
-x_{e} \\
-y_{e} \\
-z_{e} \\
-w_{e}
-\end{array}\right)
 $$
 接着，我们要把视图空间中在视锥体内的点变换到标准化设备坐标中的立方体内，即 $x$ 轴方向从 $[left, right]$ 映射到 $[-1, 1]$，$y$ 轴方向从 $[bottom, top]$ 映射到 $[-1, 1]$。以 $x_p$ 为例，映射后坐标记为 $x_n$：
 $$
@@ -145,33 +103,82 @@ x_n
 &=\left .\left ({2near\over right-left}\cdot x_e+{right-left\over right-left}\cdot z_e \right ) \right /-z_e
 \end{split}
 $$
-其中，$x_c={2near\over right-left}\cdot x_e+{right-left\over right-left}\cdot z_e$ 就是裁剪空间中的 $x$ 轴坐标。
-
 同理，
 $$
-y_c={2near\over top-bottom}\cdot y_e+{top+bottom\over top-bottom}\cdot z_e
+y_n=\left.\left({2near\over top-bottom}\cdot y_e+{top+bottom\over top-bottom}\cdot z_e\right)\right/-z_e
 $$
-现在，我们可以继续填充投影矩阵的前两行了：
+上面两个式子分母都是 $-z_e$，但是我们无法通过矩阵乘法让 $x_e$ 或 $y_e$ 除以 $-z_e$，所以我们设法让裁剪空间中的 $w_c=-z_e$，将除以 $-z_e$ 这一步放到透视除法去做：
 $$
-\left(\begin{array}{l}
+\begin{bmatrix}
 x_{c} \\
 y_{c} \\
 z_{c} \\
 w_{c}
-\end{array}\right)=\left(\begin{array}{cccc}
-{2near\over right-left} & 0 & {right+left\over right-left} & 0 \\
-0 & {2near\over top-bottom} & {top+bottom\over top-bottom} & 0 \\
-0 & 0 & A & B \\
+\end{bmatrix}=\begin{bmatrix}
+\cdot & \cdot & \cdot & \cdot \\
+\cdot & \cdot & \cdot & \cdot \\
+\cdot & \cdot & \cdot & \cdot \\
 0 & 0 & -1 & 0
-\end{array}\right)\left(\begin{array}{l}
+\end{bmatrix}\begin{bmatrix}
 x_{e} \\
 y_{e} \\
 z_{e} \\
 w_{e}
-\end{array}\right)
+\end{bmatrix}
 $$
-因为 $z$ 的投影与 $x_e$ 和 $y_e$ 无关，只与 $z_e$ 和 $w_e$ 有关，所以我们可以假设投影矩阵的第三行如上所示，其中 $A$ 和 $B$ 是未知数。
 
+$$
+\begin{bmatrix}
+x_{n} \\
+y_{n} \\
+z_{n}
+\end{bmatrix}=\begin{bmatrix}
+x_{c} / w_{c} \\
+y_{c} / w_{c} \\
+z_{c} / w_{c}
+\end{bmatrix}
+$$
+
+把 $-z_e$ 放到透视除法中去做之后，剩余部分 $x_c={2near\over right-left}\cdot x_e+{right-left\over right-left}\cdot z_e$ 就是裁剪空间中的 $x$ 轴坐标。同理，$y_c={2near\over top-bottom}\cdot y_e+{top+bottom\over top-bottom}\cdot z_e$。
+
+现在，这两个公式就可以通过矩阵乘法直接实现了：
+$$
+\begin{bmatrix}
+x_{c} \\
+y_{c} \\
+z_{c} \\
+w_{c}
+\end{bmatrix}=\begin{bmatrix}
+{2near\over right-left} & 0 & {right+left\over right-left} & 0 \\
+0 & {2near\over top-bottom} & {top+bottom\over top-bottom} & 0 \\
+\cdot & \cdot & \cdot & \cdot \\
+0 & 0 & -1 & 0
+\end{bmatrix}\begin{bmatrix}
+x_{e} \\
+y_{e} \\
+z_{e} \\
+w_{e}
+\end{bmatrix}
+$$
+因为 $z$ 的投影与 $x_e$ 和 $y_e$ 无关，只与 $z_e$ 和 $w_e$ 有关，所以我们可以假设投影矩阵的第三行如下所示，其中 $A$ 和 $B$ 是未知数：
+$$
+\begin{bmatrix}
+x_{c} \\
+y_{c} \\
+z_{c} \\
+w_{c}
+\end{bmatrix}=\begin{bmatrix}
+{2near\over right-left} & 0 & {right+left\over right-left} & 0 \\
+0 & {2near\over top-bottom} & {top+bottom\over top-bottom} & 0 \\
+0 & 0 & A & B \\
+0 & 0 & -1 & 0
+\end{bmatrix}\begin{bmatrix}
+x_{e} \\
+y_{e} \\
+z_{e} \\
+w_{e}
+\end{bmatrix}
+$$
 在视图空间中，$w_e=1$；在裁剪空间中，$w_c=-z_e$，故有：
 $$
 z_n={z_c\over w_c}={Az_e+B\over-z_e}
@@ -190,35 +197,35 @@ B=-{2far\cdot near\over far-near}
 $$
 于是，我们得到
 $$
-M_{projection}=\left(\begin{array}{cccc}
+M_{projection}=\begin{bmatrix}
 {2near\over right-left} & 0 & {right+left\over right-left} & 0 \\
 0 & {2near\over top-bottom} & {top+bottom\over top-bottom} & 0 \\
 0 & 0 & -{far+near\over far-near} & -{2far\cdot near\over far-near} \\
 0 & 0 & -1 & 0
-\end{array}\right)
+\end{bmatrix}
 $$
 上面的投影矩阵是一个通用的形式，在视图空间中的视锥体通常是关于 $x$ 和 $y$ 轴对称的，从而 $right=-left,top=-bottom$，故上式可以简化如下：
 $$
-M_{projection}=\left(\begin{array}{cccc}
+M_{projection}=\begin{bmatrix}
 {2near\over right-left} & 0 & 0 & 0 \\
 0 & {2near\over top-bottom} & 0 & 0 \\
 0 & 0 & -{far+near\over far-near} & -{2far\cdot near\over far-near} \\
 0 & 0 & -1 & 0
-\end{array}\right)
+\end{bmatrix}
 $$
 另外，通常我们传入构建透视矩阵函数的参数是 $y$ 轴方向的视域角 $fovy$ 、屏幕的宽高比 $aspect$、近平面 $near$ 和原平面 $far$，注意到
 $$
-right-left=width=2\cdot near\cdot aspect\cdot\tan({fovy\over2})\\
-top-bottom=height=2\cdot near\cdot\tan({fovy\over2})
+right-left=width=2\cdot near\cdot aspect\cdot\tan\left({fovy\over2}\right)\\
+top-bottom=height=2\cdot near\cdot\tan\left({fovy\over2}\right)
 $$
 最终，我们得到
 $$
-M_{projection}=\left(\begin{array}{cccc}
+M_{projection}=\begin{bmatrix}
 {1\over aspect\cdot\tan(fovy/2)} & 0 & 0 & 0 \\
 0 & {1\over \tan(fovy/2)} & 0 & 0 \\
 0 & 0 & -{far+near\over far-near} & -{2far\cdot near\over far-near} \\
 0 & 0 & -1 & 0
-\end{array}\right)
+\end{bmatrix}
 $$
 根据上述结果编写 `calcPerspProjectMatrix` 函数代码，要注意 `glm::mat4` 矩阵是列主序的：
 
@@ -241,59 +248,59 @@ pMat[3][2] = -(2.0f * far * near) / (far-near);
 
 首先将物体绕 $x$ 轴翻转，对应的变换矩阵为
 $$
-\left(\begin{array}{cccc}
+\begin{bmatrix}
 1 & 0 & 0 & 0\\
 0 & -1 & 0 & 0\\
 0 & 0 & 1 & 0\\
 0 & 0 & 0 & 1
-\end{array}\right)
+\end{bmatrix}
 $$
 然后把原点平移到 $(1,1)$，对应的变换矩阵为
 $$
-\left(\begin{array}{cccc}
+\begin{bmatrix}
 1 & 0 & 0 & 1\\
 0 & 1 & 0 & 1\\
 0 & 0 & 1 & 0\\
 0 & 0 & 0 & 1
-\end{array}\right)
+\end{bmatrix}
 $$
 最后 $x$ 轴和 $y$ 轴方向分别放大 $width/2$ 和 $height/2$ 倍，对应的变换矩阵为
 $$
-\left(\begin{array}{cccc}
+\begin{bmatrix}
 width/2 & 0 & 0 & 0\\
 0 & height/2 & 0 & 0\\
 0 & 0 & 1 & 0\\
 0 & 0 & 0 & 1
-\end{array}\right)
+\end{bmatrix}
 $$
 把以上三个矩阵相乘得到视口变换矩阵
 $$
 \begin{split}
 M_{view\_port}&=
-\left(\begin{array}{cccc}
+\begin{bmatrix}
 width/2 & 0 & 0 & 0\\
 0 & height/2 & 0 & 0\\
 0 & 0 & 1 & 0\\
 0 & 0 & 0 & 1
-\end{array}\right)
-\left(\begin{array}{cccc}
+\end{bmatrix}
+\begin{bmatrix}
 1 & 0 & 0 & 1\\
 0 & 1 & 0 & 1\\
 0 & 0 & 1 & 0\\
 0 & 0 & 0 & 1
-\end{array}\right)
-\left(\begin{array}{cccc}
+\end{bmatrix}
+\begin{bmatrix}
 1 & 0 & 0 & 0\\
 0 & -1 & 0 & 0\\
 0 & 0 & 1 & 0\\
 0 & 0 & 0 & 1
-\end{array}\right)\\
-&=\left(\begin{array}{cccc}
+\end{bmatrix}\\
+&=\begin{bmatrix}
 width/2 & 0 & 0 & width/2\\
 0 & -height/2 & 0& height/2\\
 0 & 0 & 1 & 0\\
 0 & 0 & 0 & 1
-\end{array}\right)
+\end{bmatrix}
 \end{split}
 $$
 根据上述结果编写 `calcViewPortMatrix` 函数代码，要注意 `glm::mat4` 矩阵是列主序的：
@@ -375,21 +382,21 @@ if (scale > 2.0f) {
 
 正交投影只需做简单的线性映射，$x$ 轴方向从 $[left, right]$ 映射到 $[-1, 1]$，$y$ 轴方向从 $[bottom, top]$ 映射到 $[-1, 1]$，$z$ 轴方向从 $[-near,-far]$ 投影到 $[-1,1]$。投影矩阵如下：
 $$
-M_{\text {projection }}=\left(\begin{array}{cccc}
+M_{\text {projection }}=\begin{bmatrix}
 \frac{2}{right-left} & 0 & 0 & -\frac{right+left}{right-left} \\
 0 & \frac{2}{top-bottom} & 0 & -\frac{top+bottom}{top-bottom} \\
 0 & 0 & \frac{-2}{far-near} & -\frac{far+near}{far-near} \\
 0 & 0 & 0 & 1
-\end{array}\right)
+\end{bmatrix}
 $$
 由于视锥体关于 $x$ 和 $y$ 轴对称，投影矩阵可简化如下：
 $$
-M_{\text {projection }}=\left(\begin{array}{cccc}
+M_{\text {projection }}=\begin{bmatrix}
 \frac{2}{right-left} & 0 & 0 & 0 \\
 0 & \frac{2}{top-bottom} & 0 & 0 \\
 0 & 0 & \frac{-2}{far-near} & -\frac{far+near}{far-near} \\
 0 & 0 & 0 & 1
-\end{array}\right)
+\end{bmatrix}
 $$
 根据以上推导结构编写代码：
 
@@ -444,8 +451,8 @@ pMat[3][2] = -(far + near) / (far - near);
 
     从物体局部空间的顶点到最终的屏幕空间上的顶点，需要依次经历局部空间、世界空间、观察空间、裁剪空间和屏幕空间共 5 个空间的坐标系。
 
-    由 [Task 2](# Task%202) 中的分析可知，裁剪空间下的顶点的 $w$ 值是观察空间坐标下的 $z$ 值，这个值的大小表示该顶点与摄像机在 $z$ 轴上的距离。
+    由 [Task 2](# Task%202) 中的分析可知，裁剪空间下的顶点的 $w$ 值是观察空间坐标下的 $z$ 值的相反数，这个值绝对值的大小表示该顶点与摄像机在 $z$ 轴上的距离。
 
 3. **经过投影变换之后，几何顶点的坐标值是被直接变换到了 NDC 坐标（即 $xyz$ 的值全部都在 $[-1,1]$ 范围内）吗？透视除法（Perspective Division）是什么？为什么要有这么一个过程？**
 
-    经过投影变换之后，几何顶点的坐标值并没有直接变换到 NDC 坐标。由 [Task 2](# Task%202) 中的分析可知，将观察空间中的几何顶点坐标 $(x_e,y_e,z_e)$ 变换到裁剪空间下的 NDC 坐标 $(x_n,y_n,z_n)$ 都有一个除以 $-z_e$ 的步骤，我们把这一步放到透视除法中去做，所以投影变换只是将 $(x_e,y_e,z_e)$ 变换到裁剪空间下的一个齐次坐标 $(x_c,y_c,z_c,w_c)$，其中 $w_c=-z_e$。之后再做透视除法，把 $x_c,y_c,z_c$ 分别除以 $w_c$ 得到 NDC 坐标。由于 $z_e$ 代表顶点到摄像机在 $z$ 轴方向的距离，透视除法使得远处顶点的 $x$ 轴和 $y$ 轴坐标衰减比近处物体多，从而产生“近大远小”的t
+    经过投影变换之后，几何顶点的坐标值并没有直接变换到 NDC 坐标。由 [Task 2](# Task%202) 中的分析可知，将观察空间中的几何顶点坐标 $(x_e,y_e,z_e)$ 变换到裁剪空间下的 NDC 坐标 $(x_n,y_n,z_n)$ 都有一个除以 $-z_e$ 的步骤，我们把这一步放到透视除法中去做，所以投影变换只是将 $(x_e,y_e,z_e)$ 变换到裁剪空间下的一个齐次坐标 $(x_c,y_c,z_c,w_c)$，其中 $w_c=-z_e$。之后再做透视除法，把 $x_c,y_c,z_c$ 分别除以 $w_c$ 得到 NDC 坐标。由于 $z_e$ 代表顶点到摄像机在 $z$ 轴方向的距离，透视除法使得远处顶点的 $x$ 轴和 $y$ 轴坐标衰减比近处物体多，从而产生“近大远小”的视觉效果。
