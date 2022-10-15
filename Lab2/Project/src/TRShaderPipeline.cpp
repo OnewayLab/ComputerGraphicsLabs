@@ -1,5 +1,5 @@
 #include "TRShaderPipeline.h"
-
+#include <cstdio>
 #include <algorithm>
 
 namespace TinyRenderer
@@ -25,8 +25,8 @@ namespace TinyRenderer
 	}
 
 	TRShaderPipeline::VertexData TRShaderPipeline::VertexData::barycentricLerp(
-		const VertexData &v0, 
-		const VertexData &v1, 
+		const VertexData &v0,
+		const VertexData &v1,
 		const VertexData &v2,
 		glm::vec3 w)
 	{
@@ -93,9 +93,9 @@ namespace TinyRenderer
 		//Edge-function rasterization algorithm
 
 		//Task4: Implement edge-function triangle rassterization algorithm
-		// Note: You should use VertexData::barycentricLerp(v0, v1, v2, w) for interpolation, 
+		// Note: You should use VertexData::barycentricLerp(v0, v1, v2, w) for interpolation,
 		//       interpolated points should be pushed back to rasterized_points.
-		//       Interpolated points shold be discarded if they are outside the window. 
+		//       Interpolated points shold be discarded if they are outside the window.
 
 		//       v0.spos, v1.spos and v2.spos are the screen space vertices.
 
@@ -117,15 +117,61 @@ namespace TinyRenderer
 		//Task1: Implement Bresenham line rasterization
 		// Note: You shold use VertexData::lerp(from, to, weight) for interpolation,
 		//       interpolated points should be pushed back to rasterized_points.
-		//       Interpolated points shold be discarded if they are outside the window. 
-		
+		//       Interpolated points shold be discarded if they are outside the window.
+
 		//       from.spos and to.spos are the screen space vertices.
 
-		//For instance:
-		rasterized_points.push_back(from);
-		rasterized_points.push_back(to);
+		int dx = to.spos.x - from.spos.x;
+		int dy = to.spos.y - from.spos.y;
+		int stepX = 1, stepY = 1;
 
-	}
+		if (dx < 0) {
+			dx = -dx;
+			stepX = -1;
+		}
+		if (dy < 0) {
+			dy = -dy;
+			stepY = -1;
+		}
+
+        int d2x = 2 * dx, d2y = 2 * dy;
+		int d2yMinusD2x = d2y - d2x;
+		int sx = from.spos.x, sy = from.spos.y;
+
+		if (dy <= dx) {	// slope <= 1
+            int flag = d2y - dx;
+			for (int i = 0; i <= dx; i++) {
+				auto tmp = VertexData::lerp(from, to, static_cast<double>(i) / dx);
+				tmp.spos = glm::ivec2(sx, sy);
+				if (tmp.spos.x >= 0 && tmp.spos.x < screen_width && tmp.spos.y >= 0 && tmp.spos.y < screen_height) {
+					rasterized_points.push_back(tmp);
+				}
+                sx += stepX;
+				if (flag < 0) {
+					flag += d2y;
+				} else {
+					flag += d2yMinusD2x;
+					sy += stepY;
+				}
+			}
+        } else {	// slope > 1
+			int flag = d2x - dy;
+			for (int i = 0; i <= dy; i++) {
+				auto tmp = VertexData::lerp(from, to, static_cast<double>(i) / dy);
+                tmp.spos = glm::ivec2(sx, sy);
+				if (tmp.spos.x >= 0 && tmp.spos.x < screen_width && tmp.spos.y >= 0 && tmp.spos.y < screen_height) {
+					rasterized_points.push_back(tmp);
+				}
+				sy += stepY;
+				if (flag < 0) {
+					flag += d2x;
+				} else {
+					flag -= d2yMinusD2x;
+					sx += stepX;
+				}
+			}
+		}
+    }
 
 	void TRDefaultShaderPipeline::vertexShader(VertexData &vertex)
 	{
