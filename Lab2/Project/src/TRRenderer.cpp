@@ -81,7 +81,7 @@ namespace TinyRenderer
 		{
 			m_shader_handler = std::make_shared<TRDefaultShaderPipeline>();
 		}
-		
+
 		//Load the matrices
 		m_shader_handler->setModelMatrix(m_modelMatrix);
 		m_shader_handler->setViewProjectMatrix(m_projectMatrix * m_viewMatrix);
@@ -211,7 +211,7 @@ namespace TinyRenderer
 		{
 			std::swap(m_backBuffer, m_frontBuffer);
 		}
-		
+
 	}
 
 	unsigned char* TRRenderer::commitRenderedColorBuffer()
@@ -244,7 +244,21 @@ namespace TinyRenderer
 		//       m_frustum_near_far.x -> near plane
 		//       m_frustum_near_far.y -> far plane
 
-		return { v0, v1, v2 };
+		if (
+			v0.cpos.x >= -v0.cpos.w && v0.cpos.x <= v0.cpos.w &&
+			v0.cpos.y >= -v0.cpos.w && v0.cpos.y <= v0.cpos.w &&
+			v0.cpos.z >= -v0.cpos.w && v0.cpos.z <= v0.cpos.w ||
+			v1.cpos.x >= -v1.cpos.w && v1.cpos.x <= v1.cpos.w &&
+			v1.cpos.y >= -v1.cpos.w && v1.cpos.y <= v1.cpos.w &&
+			v1.cpos.z >= -v1.cpos.w && v1.cpos.z <= v1.cpos.w ||
+			v2.cpos.x >= -v2.cpos.w && v2.cpos.x <= v2.cpos.w &&
+			v2.cpos.y >= -v2.cpos.w && v2.cpos.y <= v2.cpos.w &&
+			v2.cpos.z >= -v2.cpos.w && v2.cpos.z <= v2.cpos.w
+		) {
+            return {v0, v1, v2};
+        } else {
+            return {};
+        }
 	}
 
 	bool TRRenderer::isTowardBackFace(const glm::vec4 &v0, const glm::vec4 &v1, const glm::vec4 &v2) const
