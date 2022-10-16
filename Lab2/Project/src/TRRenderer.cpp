@@ -268,9 +268,11 @@ namespace TinyRenderer
 		// Task3: Implement the back face culling
 		//  Note: Return true if it's a back-face, otherwise return false.
 
-		return false;
-
-	}
+        auto vec1 = glm::vec3(v1.x - v0.x, v1.y - v0.y, v1.z - v0.z);
+        auto vec2 = glm::vec3(v2.x - v1.x, v2.y - v1.y, v2.z - v1.z);
+        auto normal_vec = glm::cross(vec1, vec2);
+        return normal_vec.z < 0;
+    }
 
 	glm::mat4 TRRenderer::calcViewPortMatrix(int width, int height)
 	{
