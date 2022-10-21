@@ -193,10 +193,12 @@ namespace TinyRenderer
 							{
 								//Perspective correction after rasterization
 								TRShaderPipeline::VertexData::aftPrespCorrection(points);
-								glm::vec4 fragColor;
-								m_shader_handler->fragmentShader(points, fragColor);
-								m_backBuffer->writeColor(points.spos.x, points.spos.y, fragColor);
-								m_backBuffer->writeDepth(points.spos.x, points.spos.y, points.cpos.z);
+								if (points.cpos.z < m_backBuffer->readDepth(points.spos.x, points.spos.y)) {
+									glm::vec4 fragColor;
+									m_shader_handler->fragmentShader(points, fragColor);
+									m_backBuffer->writeColor(points.spos.x, points.spos.y, fragColor);
+									m_backBuffer->writeDepth(points.spos.x, points.spos.y, points.cpos.z);
+								}
 							}
 						}
 					}
