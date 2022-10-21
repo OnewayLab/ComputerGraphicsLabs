@@ -99,12 +99,60 @@ namespace TinyRenderer
 
 		//       v0.spos, v1.spos and v2.spos are the screen space vertices.
 
-		//For instance:
-		rasterized_points.push_back(v0);
-		rasterized_points.push_back(v1);
-		rasterized_points.push_back(v2);
+		// Calculate the bounding box of the triangle
+		int minX = std::min(v0.spos.x, std::min(v1.spos.x, v2.spos.x));
+		int maxX = std::max(v0.spos.x, std::max(v1.spos.x, v2.spos.x));
+		int minY = std::min(v0.spos.y, std::min(v1.spos.y, v2.spos.y));
+		int maxY = std::max(v0.spos.y, std::max(v1.spos.y, v2.spos.y));
 
-	}
+		// Clamp the bounding box to the window
+		minX = std::max(minX, 0);
+		maxX = std::min(maxX, (int)screen_width - 1);
+		minY = std::max(minY, 0);
+		maxY = std::min(maxY, (int)screene_height - 1);
+
+		// Calculate some components of the edge functions
+        int i0 = v0.spos.y - v1.spos.y;
+        int i1 = v1.spos.y - v2.spos.y;
+        int i2 = v2.spos.y - v0.spos.y;
+        int j0 = v1.spos.x - v0.spos.x;
+        int j1 = v2.spos.x - v1.spos.x;
+        int j2 = v0.spos.x - v2.spos.x;
+        int k0 = v0.spos.x * v1.spos.y - v0.spos.y * v1.spos.x;
+		int k1 = v1.spos.x * v2.spos.y - v1.spos.y * v2.spos.x;
+		int k2 = v2.spos.x * v0.spos.y - v2.spos.y * v0.spos.x;
+
+		// Calculate the edge functions of the first pixel
+        int fy0 = k0 + i0 * minX + j0 * minY;
+        int fy1 = k1 + i1 * minX + j1 * minY;
+       	int fy2 = k2 + i2 * minX + j2 * minY;
+
+		// Delta is twice of the area of the triangle
+        int delta = fy0 + fy1 + fy2;
+        float deltaInverse = 1.0 / delta;
+
+        // Scan the pixels in the bounding box
+        for (int y = minY; y <= maxY; ++y) {
+            int fx0 = fy0, fx1 = fy1, fx2 = fy2;
+            for (int x = minX; x <= maxX; ++x) {
+				// Judge if the pixel is in the triangle
+				if (fx0 <=0 && fx1 <= 0 && fx2 <= 0) {
+                    // Lerp the vertex attributes
+					auto tmp = VertexData::barycentricLerp(v0, v1, v2, glm::vec3(fx1 * deltaInverse, fx2 * deltaInverse, fx0 * deltaInverse));
+					tmp.spos.x = x;
+					tmp.spos.y = y;
+					rasterized_points.push_back(tmp);
+				}
+				// Calculate the edge function of the next pixel
+                fx0 += i0;
+                fx1 += i1;
+                fx2 += i2;
+            }
+            fy0 += j0;
+            fy1 += j1;
+            fy2 += j2;
+        }
+    }
 
 	void TRShaderPipeline::rasterize_wire_aux(
 		const VertexData &from,

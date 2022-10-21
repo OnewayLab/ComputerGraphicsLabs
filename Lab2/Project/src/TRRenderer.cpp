@@ -176,10 +176,10 @@ namespace TinyRenderer
 
 
 							// Task4: change here
-							m_shader_handler->rasterize_wire(vert[0], vert[1], vert[2],
+							// m_shader_handler->rasterize_wire(vert[0], vert[1], vert[2],
+							// 	m_backBuffer->getWidth(), m_backBuffer->getHeight(), rasterized_points);
+							m_shader_handler->rasterize_fill_edge_function(vert[0], vert[1], vert[2],
 								m_backBuffer->getWidth(), m_backBuffer->getHeight(), rasterized_points);
-							//m_shader_handler->rasterize_fill_edge_function(vert[0], vert[1], vert[2],
-							//	m_backBuffer->getWidth(), m_backBuffer->getHeight(), rasterized_points);
 						}
 					}
 

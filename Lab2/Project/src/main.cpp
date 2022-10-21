@@ -32,7 +32,7 @@ using namespace TinyRenderer;
 
 int main(int argc, char* args[])
 {
-	constexpr int width =  666;
+	constexpr int width =  700;
 	constexpr int height = 500;
 
 	TRWindowsApp::ptr winApp = TRWindowsApp::getInstance(width, height, "CGAssignment2: Rasterization");
@@ -75,7 +75,7 @@ int main(int argc, char* args[])
 		//Display to screen
 		double deltaTime = winApp->updateScreenSurface(
 			renderer->commitRenderedColorBuffer(),
-			width, 
+			width,
 			height,
 			4,
 			renderer->getNumberOfClipFaces(),
