@@ -249,13 +249,16 @@ namespace TinyRenderer
 		if (
 			v0.cpos.x >= -v0.cpos.w && v0.cpos.x <= v0.cpos.w &&
 			v0.cpos.y >= -v0.cpos.w && v0.cpos.y <= v0.cpos.w &&
-			v0.cpos.z >= -v0.cpos.w && v0.cpos.z <= v0.cpos.w ||
+			v0.cpos.z >= -v0.cpos.w && v0.cpos.z <= v0.cpos.w &&
+			v0.cpos.w >= m_frustum_near_far.x && v0.cpos.w <= m_frustum_near_far.y ||
 			v1.cpos.x >= -v1.cpos.w && v1.cpos.x <= v1.cpos.w &&
 			v1.cpos.y >= -v1.cpos.w && v1.cpos.y <= v1.cpos.w &&
-			v1.cpos.z >= -v1.cpos.w && v1.cpos.z <= v1.cpos.w ||
+			v1.cpos.z >= -v1.cpos.w && v1.cpos.z <= v1.cpos.w &&
+			v1.cpos.w >= m_frustum_near_far.x && v1.cpos.w <= m_frustum_near_far.y ||
 			v2.cpos.x >= -v2.cpos.w && v2.cpos.x <= v2.cpos.w &&
 			v2.cpos.y >= -v2.cpos.w && v2.cpos.y <= v2.cpos.w &&
-			v2.cpos.z >= -v2.cpos.w && v2.cpos.z <= v2.cpos.w
+			v2.cpos.z >= -v2.cpos.w && v2.cpos.z <= v2.cpos.w &&
+			v2.cpos.w >= m_frustum_near_far.x && v2.cpos.w <= m_frustum_near_far.y
 		) {
             return {v0, v1, v2};
         } else {
