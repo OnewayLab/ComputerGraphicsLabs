@@ -5,6 +5,7 @@
 #include "TRShaderPipeline.h"
 
 #include <cmath>
+#include <iostream>
 
 namespace TinyRenderer
 {
@@ -245,8 +246,7 @@ namespace TinyRenderer
 		//       Please Use v0.cpos, v1.cpos, v2.cpos
 		//       m_frustum_near_far.x -> near plane
 		//       m_frustum_near_far.y -> far plane
-
-		if (
+        if (
 			v0.cpos.x >= -v0.cpos.w && v0.cpos.x <= v0.cpos.w &&
 			v0.cpos.y >= -v0.cpos.w && v0.cpos.y <= v0.cpos.w &&
 			v0.cpos.z >= -v0.cpos.w && v0.cpos.z <= v0.cpos.w &&
@@ -260,7 +260,149 @@ namespace TinyRenderer
 			v2.cpos.z >= -v2.cpos.w && v2.cpos.z <= v2.cpos.w &&
 			v2.cpos.w >= m_frustum_near_far.x && v2.cpos.w <= m_frustum_near_far.y
 		) {
-            return {v0, v1, v2};
+            auto vertices = std::vector<TRShaderPipeline::VertexData>{v0, v1, v2};
+
+            std::vector<TRShaderPipeline::VertexData> vertices1;
+			for (int j = 0; j < vertices.size(); j++) {
+				// The start and end of the edge
+				int k = (j + 1) % vertices.size();
+				auto &start = vertices[j].cpos;
+				auto &end = vertices[k].cpos;
+
+				// If the edge and the plane intersect, save the intersection point
+				float weight = (1e-5 - start.w) / (end.w - start.w);
+				if (weight > 0 && weight < 1) {
+					auto newVertex = TRShaderPipeline::VertexData::lerp(vertices[j], vertices[k], weight);
+					vertices1.push_back(newVertex);
+				}
+
+				// If the end of the edge is inside the clipping space, save it
+				if (end.w >= 1e-5) {
+					vertices1.push_back(vertices[k]);
+				}
+			}
+
+            std::vector<TRShaderPipeline::VertexData> vertices2;
+			for (int j = 0; j < vertices1.size(); j++) {
+				// The start and end of the edge
+				int k = (j + 1) % vertices1.size();
+				auto &start = vertices1[j].cpos;
+				auto &end = vertices1[k].cpos;
+
+				// If the edge and the plane intersect, save the intersection point
+				float weight = (start.w + start.x) / (start.w + start.x - end.w - end.x);
+				if (weight > 0 && weight < 1) {
+					auto newVertex = TRShaderPipeline::VertexData::lerp(vertices1[j], vertices1[k], weight);
+					vertices2.push_back(newVertex);
+				}
+
+				// If the end of the edge is inside the clipping space, save it
+				if (end.w >= -end.x) {
+					vertices2.push_back(vertices1[k]);
+				}
+			}
+
+            std::vector<TRShaderPipeline::VertexData> vertices3;
+			for (int j = 0; j < vertices2.size(); j++) {
+				// The start and end of the edge
+				int k = (j + 1) % vertices2.size();
+				auto &start = vertices2[j].cpos;
+				auto &end = vertices2[k].cpos;
+
+				// If the edge and the plane intersect, save the intersection point
+				float weight = (start.w - start.x) / (start.w - start.x + end.x - end.w);
+                if (weight > 0 && weight < 1) {
+					auto newVertex = TRShaderPipeline::VertexData::lerp(vertices2[j], vertices2[k], weight);
+					vertices3.push_back(newVertex);
+				}
+
+				// If the end of the edge is inside the clipping space, save it
+				if (end.w >= end.x) {
+					vertices3.push_back(vertices2[k]);
+				}
+			}
+
+            std::vector<TRShaderPipeline::VertexData> vertices4;
+			for (int j = 0; j < vertices3.size(); j++) {
+				// The start and end of the edge
+				int k = (j + 1) % vertices3.size();
+				auto &start = vertices3[j].cpos;
+				auto &end = vertices3[k].cpos;
+
+				// If the edge and the plane intersect, save the intersection point
+				float weight = (start.w + start.y) / (start.w + start.y - end.w - end.y);
+				if (weight > 0 && weight < 1) {
+					auto newVertex = TRShaderPipeline::VertexData::lerp(vertices3[j], vertices3[k], weight);
+					vertices4.push_back(newVertex);
+				}
+
+				// If the end of the edge is inside the clipping space, save it
+				if (end.w >= -end.y) {
+					vertices4.push_back(vertices3[k]);
+				}
+			}
+
+			std::vector<TRShaderPipeline::VertexData> vertices5;
+			for (int j = 0; j < vertices4.size(); j++) {
+				// The start and end of the edge
+				int k = (j + 1) % vertices4.size();
+				auto &start = vertices4[j].cpos;
+				auto &end = vertices4[k].cpos;
+
+				// If the edge and the plane intersect, save the intersection point
+				float weight = (start.w - start.y) / (start.w - start.y - end.w + end.y);
+				if (weight > 0 && weight < 1) {
+					auto newVertex = TRShaderPipeline::VertexData::lerp(vertices4[j], vertices4[k], weight);
+					vertices5.push_back(newVertex);
+				}
+
+				// If the end of the edge is inside the clipping space, save it
+				if (end.w >= end.y) {
+					vertices5.push_back(vertices4[k]);
+				}
+			}
+
+			std::vector<TRShaderPipeline::VertexData> vertices6;
+			for (int j = 0; j < vertices5.size(); j++) {
+				// The start and end of the edge
+				int k = (j + 1) % vertices5.size();
+				auto &start = vertices5[j].cpos;
+				auto &end = vertices5[k].cpos;
+
+				// If the edge and the plane intersect, save the intersection point
+				float weight = (start.w + start.z) / (start.w + start.z - end.w - end.z);
+				if (weight > 0 && weight < 1) {
+					auto newVertex = TRShaderPipeline::VertexData::lerp(vertices5[j], vertices5[k], weight);
+					vertices6.push_back(newVertex);
+				}
+
+				// If the end of the edge is inside the clipping space, save it
+				if (end.w >= -end.z) {
+					vertices6.push_back(vertices5[k]);
+				}
+			}
+
+			std::vector<TRShaderPipeline::VertexData> vertices7;
+			for (int j = 0; j < vertices6.size(); j++) {
+				// The start and end of the edge
+				int k = (j + 1) % vertices6.size();
+				auto &start = vertices6[j].cpos;
+				auto &end = vertices6[k].cpos;
+
+				// If the edge and the plane intersect, save the intersection point
+				float weight = (start.w - start.z) / (start.w - start.z - end.w + end.z);
+				if (weight > 0 && weight < 1) {
+					auto newVertex = TRShaderPipeline::VertexData::lerp(vertices6[j], vertices6[k], weight);
+					vertices7.push_back(newVertex);
+				}
+
+				// If the end of the edge is inside the clipping space, save it
+				if (end.w >= end.z) {
+					vertices7.push_back(vertices6[k]);
+				}
+			}
+
+            return vertices7;
         } else {
             return {};
         }
