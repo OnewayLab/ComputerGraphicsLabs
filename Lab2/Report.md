@@ -282,18 +282,6 @@ bool TRRenderer::isTowardBackFace(const glm::vec4 &v0, const glm::vec4 &v1, cons
     $$
     $F_{AB}(P)$、$F_{BC}(P)$ 和 $F_{CA}(P)$ 称为边界函数。
     
-    > **叉乘从三维到二维的推广：**
-    >
-    > 设 $\boldsymbol{a}$ 和 $\boldsymbol{b}$ 是二维向量，直接在第三个维度补 $0$ 得到三维向量 $\boldsymbol{a}'$ 和 $\boldsymbol{b}'$，则 
-    > $$
-    > \boldsymbol{a}'\times\boldsymbol{b}'=\begin{bmatrix}
-    > 	0\\
-    > 	0\\
-    > 	\boldsymbol{a}_x\boldsymbol{b}_y-\boldsymbol{a}_y\boldsymbol{b}_x
-    > \end{bmatrix}
-    > $$
-    > 将 $\boldsymbol{a}_x\boldsymbol{b}_y-\boldsymbol{a}_y\boldsymbol{b}_x$ 这个标量定义为 $\boldsymbol{a}\times\boldsymbol{b}$ 的结果，$\boldsymbol{a}\times\boldsymbol{b}>0$ 说明从 $\boldsymbol{a}$ 到 $\boldsymbol{b}$ 逆时针旋转的角度小于 $180^{\circ}$，否则说明大于 $180^{\circ}$。
-    
 * **对边界函数计算的优化**
 
     把顶点坐标代入 $F_{AB}(P)$，得
