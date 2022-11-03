@@ -130,11 +130,13 @@ namespace TinyRenderer
 		unsigned char r = 255, g = 255, b = 255, a = 255;
 
 		//Task1: Implement nearest sampling algorithm for texture sampling
-		// Note: You should use texture.readPixel() to read the pixel, and for instance, 
+		// Note: You should use texture.readPixel() to read the pixel, and for instance,
 		//       use texture.readPixel(25,35,r,g,b,a) to read the pixel in (25, 35).
 		//       But before that, you need to map uv from [0,1]*[0,1] to [0,width-1]*[0,height-1].
 		{
-
+			int u = uv.x * (texture.getWidth() - 1) + 0.5;
+			int v = uv.y * (texture.getHeight() - 1) + 0.5;
+			texture.readPixel(u, v, r, g, b, a);
 		}
 
 		constexpr float denom = 1.0f / 255.0f;
@@ -143,11 +145,11 @@ namespace TinyRenderer
 
 	glm::vec4 TRTexture2DSampler::textureSampling_bilinear(const TRTexture2D &texture, glm::vec2 uv)
 	{
-		//Note: Delete this line when you try to implement Task 4. 
+		//Note: Delete this line when you try to implement Task 4.
 		return textureSampling_nearest(texture, uv);
 
 		//Task4: Implement bilinear sampling algorithm for texture sampling
-		// Note: You should use texture.readPixel() to read the pixel, and for instance, 
+		// Note: You should use texture.readPixel() to read the pixel, and for instance,
 		//       use texture.readPixel(25,35,r,g,b,a) to read the pixel in (25, 35).
 	}
 }
