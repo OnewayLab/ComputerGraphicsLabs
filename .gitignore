@@ -1,9 +1,4 @@
-Lab1/Project/build
-!Lab1/Project/build/model
-!Lab1/Project/build/Debug/SDL2.dll
-!Lab1/Project/build/Release/SDL2.dll
-
-Lab2/Project/build
-!Lab2/Project/build/model
-!Lab2/Project/build/Debug/SDL2.dll
-!Lab2/Project/build/Release/SDL2.dll
+Lab*/Project/build
+!Lab*/Project/build/model
+!Lab*/Project/build/Debug/SDL2.dll
+!Lab*/Project/build/Release/SDL2.dll
