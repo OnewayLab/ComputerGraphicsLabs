@@ -77,9 +77,9 @@ int main(int argc, char* args[])
 	glm::vec3 redLightPos = glm::vec3(0.0f, -0.05f, 1.2f);
 	glm::vec3 greenLightPos = glm::vec3(0.87f, -0.05f, -0.87f);
 	glm::vec3 blueLightPos = glm::vec3(-0.83f, -0.05f, -0.83f);
-	int redLightIndex = renderer->addPointLight(redLightPos, glm::vec3(1.0, 0.7, 1.8), glm::vec3(1.9f, 0.0f, 0.0f));
-	int greenLightIndex = renderer->addPointLight(greenLightPos, glm::vec3(1.0, 0.7, 1.8), glm::vec3(0.0f, 1.9f, 0.0f));
-	int blueLightIndex = renderer->addPointLight(blueLightPos, glm::vec3(1.0, 0.7, 1.8), glm::vec3(0.0f, 0.0f, 1.9f));
+	int redLightIndex = renderer->addPointLight(redLightPos, glm::vec3(1.0, 0.7, 1.8), glm::vec3(1.9f, 0.0f, 0.0f), -redLightPos, 0.9659f);
+	int greenLightIndex = renderer->addPointLight(greenLightPos, glm::vec3(1.0, 0.7, 1.8), glm::vec3(0.0f, 1.9f, 0.0f), -greenLightPos, 0.9659f);
+	int blueLightIndex = renderer->addPointLight(blueLightPos, glm::vec3(1.0, 0.7, 1.8), glm::vec3(0.0f, 0.0f, 1.9f), -blueLightPos, 0.9659f);
 	auto &redLight = renderer->getPointLight(redLightIndex);
 	auto &greenLight = renderer->getPointLight(greenLightIndex);
 	auto &blueLight = renderer->getPointLight(blueLightIndex);
@@ -125,17 +125,20 @@ int main(int argc, char* args[])
 			redLightPos = glm::vec3(redLightModelMat * glm::vec4(redLightPos, 1.0f));
 			redLightMesh->setModelMatrix(glm::translate(glm::mat4(1.0f), redLightPos));
 			redLight.lightPos = redLightPos;
+            redLight.direction = -redLightPos;
 
-			greenLightModelMat = glm::rotate(glm::mat4(1.0f), (float)deltaTime * 0.0008f, glm::vec3(1, 1, 1));
+            greenLightModelMat = glm::rotate(glm::mat4(1.0f), (float)deltaTime * 0.0008f, glm::vec3(1, 1, 1));
 			greenLightPos = glm::vec3(greenLightModelMat * glm::vec4(greenLightPos, 1.0f));
 			greenLightMesh->setModelMatrix(glm::translate(glm::mat4(1.0f), greenLightPos));
 			greenLight.lightPos = greenLightPos;
+            greenLight.direction = -greenLightPos;
 
-			blueLightModelMat = glm::rotate(glm::mat4(1.0f), (float)deltaTime * 0.0008f, glm::vec3(-1, 1, 1));
+            blueLightModelMat = glm::rotate(glm::mat4(1.0f), (float)deltaTime * 0.0008f, glm::vec3(-1, 1, 1));
 			blueLightPos = glm::vec3(blueLightModelMat * glm::vec4(blueLightPos, 1.0f));
 			blueLightMesh->setModelMatrix(glm::translate(glm::mat4(1.0f), blueLightPos));
 			blueLight.lightPos = blueLightPos;
-		}
+            blueLight.direction = -blueLightPos;
+        }
 
 		//Camera operation
 		{

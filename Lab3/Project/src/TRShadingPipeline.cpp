@@ -367,12 +367,12 @@ namespace TinyRenderer
 			//light.attenuation: the attenuation coefficients of the light source (x,y,z) -> (constant,linear,quadratic)
 			//  you could use glm::pow(), glm::dot, glm::reflect(), glm::max(), glm::normalize(), glm::length() et al.
 			{
+				// ambient
+				ambient = amb_color * light.lightColor * 0.5f;
 
 				// calculate theta
-				float theta = glm::dot(lightDir, glm::normalize(light.lightPos - fragPos));
-				if (theta > 0.866) {
-					// ambient
-					ambient = amb_color * light.lightColor;
+				float theta = glm::dot(lightDir, light.direction);
+				if (theta > light.cutOff) {
 
 					// diffuse
 					float diff = glm::max(glm::dot(normal, lightDir), 0.0f);
@@ -383,7 +383,7 @@ namespace TinyRenderer
 					float spec = glm::pow(glm::dot(halfwayDir, normal), m_shininess);
 					specular = spe_color * spec * light.lightColor;
 				} else {
-					ambient = diffuse = specular = glm::vec3(0.0f);
+					/*ambient = */diffuse = specular = glm::vec3(0.0f);
 				}
 
                 // attenuation

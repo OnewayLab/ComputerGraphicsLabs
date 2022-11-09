@@ -258,4 +258,58 @@ return glm::vec4(r, g, b, a) * denom;
 
 将原本的点光源改成聚光灯需要经历如下步骤：
 
-1. 在 `TR
+1. 在 `TRShadingState.h` 的 `TRPoingLight` 类中增加 `direction` 和 `cutOff` 两个属性：
+
+   ```C++
+   class TRPointLight
+   {
+   public:
+   	glm::vec3 lightPos;//Note: world space position of light source
+   	glm::vec3 attenuation;
+   	glm::vec3 lightColor;
+       glm::vec3 direction;
+       float cutOff;
+       TRPointLight(glm::vec3 pos, glm::vec3 atten, glm::vec3 color, glm::vec3 direction, float cutOff)
+   		: lightPos(pos), attenuation(atten), lightColor(color), direction(direction), cutOff(cutOff) {}
+   };
+   ```
+2. 在 `TRShadingPipeline` 和 `TRShader` 两个类的 `addPointLight` 函数中加入上述两个属性；
+3. 在 `main.cpp` 中将光源的方向设为位置向量取反，这样光源就会照向世界坐标系的原点，`cutOff` 值设为 `0.9659f`，这是 15 度角的余弦值：
+
+   ```C++
+   int redLightIndex = renderer->addPointLight(redLightPos, glm::vec3(1.0, 0.7, 1.8), glm::vec3(1.9f, 0.0f, 0.0f), -redLightPos, 0.9659f);
+   int greenLightIndex = renderer->addPointLight(greenLightPos, glm::vec3(1.0, 0.7, 1.8), glm::vec3(0.0f, 1.9f, 0.0f), -greenLightPos, 0.9659f);
+   int blueLightIndex = renderer->addPointLight(blueLightPos, glm::vec3(1.0, 0.7, 1.8), glm::vec3(0.0f, 0.0f, 1.9f), -blueLightPos, 0.9659f);
+   ```
+
+4. 在模型变换部分改变光源方向：
+
+    ```C++
+    redLightModelMat = glm::rotate(glm::mat4(1.0f), (float)deltaTime * 0.0008f, glm::vec3(0, 1, 0));
+    redLightPos = glm::vec3(redLightModelMat * glm::vec4(redLightPos, 1.0f));
+    redLightMesh->setModelMatrix(glm::translate(glm::mat4(1.0f), redLightPos));
+    redLight.lightPos = redLightPos;
+    redLight.direction = -redLightPos;
+    greenLightModelMat = glm::rotate(glm::mat4(1.0f), (float)deltaTime * 0.0008f, glm::vec3(1, 1, 1));
+    greenLightPos = glm::vec3(greenLightModelMat * glm::vec4(greenLightPos, 1.0f));
+    greenLightMesh->setModelMatrix(glm::translate(glm::mat4(1.0f), greenLightPos));
+    greenLight.lightPos = greenLightPos;
+    greenLight.direction = -greenLightPos;
+    blueLightModelMat = glm::rotate(glm::mat4(1.0f), (float)deltaTime * 0.0008f, glm::vec3(-1, 1, 1));
+    blueLightPos = glm::vec3(blueLightModelMat * glm::vec4(blueLightPos, 1.0f));
+    blueLightMesh->setModelMatrix(glm::translate(glm::mat4(1.0f), blueLightPos));
+    blueLight.lightPos = blueLightPos;
+    blueLight.direction = -blueLightPos;
+    ```
+
+聚光灯照向怪兽效果如下：
+
+![image-20221109235302578](assets/image-20221109235302578.png)
+
+[视频](./Video/Task5-1.mp4)
+
+聚光灯照向墙壁效果如下：
+
+![image-20221109235636044](assets/image-20221109235636044.png)
+
+[视频](Video/Task5-2.mp4)
