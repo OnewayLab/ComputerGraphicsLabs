@@ -86,9 +86,9 @@ namespace TinyRenderer
 		m_backBuffer->clear(color);
 	}
 
-	int TRRenderer::addPointLight(glm::vec3 pos, glm::vec3 atten, glm::vec3 color)
+	int TRRenderer::addPointLight(glm::vec3 pos, glm::vec3 atten, glm::vec3 color, glm::vec3 direction, float cutOff)
 	{
-		return TRShadingPipeline::addPointLight(pos, atten, color);
+		return TRShadingPipeline::addPointLight(pos, atten, color, direction, cutOff);
 	}
 
 	TRPointLight &TRRenderer::getPointLight(const int &index)
@@ -102,7 +102,7 @@ namespace TinyRenderer
 		{
 			m_shader_handler = std::make_shared<TRDefaultShadingPipeline>();
 		}
-		
+
 		//Load the matrices
 		m_shader_handler->setModelMatrix(m_modelMatrix);
 		m_shader_handler->setViewProjectMatrix(m_projectMatrix * m_viewMatrix);
@@ -261,7 +261,7 @@ namespace TinyRenderer
 		{
 			std::swap(m_backBuffer, m_frontBuffer);
 		}
-		
+
 	}
 
 	unsigned char* TRRenderer::commitRenderedColorBuffer()
@@ -376,7 +376,7 @@ namespace TinyRenderer
 				}
 			}
 		}
-		
+
 		return inside_vertices;
 	}
 

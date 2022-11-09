@@ -28,8 +28,8 @@ namespace TinyRenderer
 	}
 
 	TRShadingPipeline::VertexData TRShadingPipeline::VertexData::barycentricLerp(
-		const VertexData &v0, 
-		const VertexData &v1, 
+		const VertexData &v0,
+		const VertexData &v1,
 		const VertexData &v2,
 		const glm::vec3 &w)
 	{
@@ -121,7 +121,7 @@ namespace TinyRenderer
 		}
 
 		//Accelerated Half-Space Triangle Rasterization
-		//Refs:Mileff P, Neh¨¦z K, Dudra J. Accelerated half-space triangle rasterization[J].
+		//Refs:Mileff P, Nehï¿½ï¿½z K, Dudra J. Accelerated half-space triangle rasterization[J].
 		//     Acta Polytechnica Hungarica, 2015, 12(7): 217-236. http://acta.uni-obuda.hu/Mileff_Nehez_Dudra_63.pdf
 
 		const glm::ivec2 &A = v[0].spos;
@@ -268,9 +268,9 @@ namespace TinyRenderer
 		return m_global_texture_units[index];
 	}
 
-	int TRShadingPipeline::addPointLight(glm::vec3 pos, glm::vec3 atten, glm::vec3 color)
+	int TRShadingPipeline::addPointLight(glm::vec3 pos, glm::vec3 atten, glm::vec3 color, glm::vec3 direction, float cutOff)
 	{
-		m_point_lights.push_back(TRPointLight(pos, atten, color));
+		m_point_lights.push_back(TRPointLight(pos, atten, color, direction, cutOff));
 		return m_point_lights.size() - 1;
 	}
 
@@ -326,7 +326,7 @@ namespace TinyRenderer
 	{
 		fragColor = glm::vec4(0.0f);
 
-		//Fetch the corresponding color 
+		//Fetch the corresponding color
 		glm::vec3 amb_color, dif_color, spe_color, glow_color;
 		amb_color = dif_color = (m_diffuse_tex_id != -1) ? glm::vec3(texture2D(m_diffuse_tex_id, data.tex)) : m_kd;
 		spe_color = (m_specular_tex_id != -1) ? glm::vec3(texture2D(m_specular_tex_id, data.tex)) : m_ks;
@@ -364,10 +364,31 @@ namespace TinyRenderer
 			// light.lightColor: the ambient, diffuse and specular color of light source
 			//      m_shininess: specular hightlight exponent coefficient
 			//   light.lightPos: the position of the light source
-			//light.attenuation£ºthe attenuation coefficients of the light source (x,y,z) -> (constant,linear,quadratic)
+			//light.attenuation: the attenuation coefficients of the light source (x,y,z) -> (constant,linear,quadratic)
 			//  you could use glm::pow(), glm::dot, glm::reflect(), glm::max(), glm::normalize(), glm::length() et al.
 			{
 
+				// calculate theta
+				float theta = glm::dot(lightDir, glm::normalize(light.lightPos - fragPos));
+				if (theta > 0.866) {
+					// ambient
+					ambient = amb_color * light.lightColor;
+
+					// diffuse
+					float diff = glm::max(glm::dot(normal, lightDir), 0.0f);
+					diffuse = dif_color * diff * light.lightColor;
+
+					// specular
+					glm::vec3 halfwayDir = glm::normalize(lightDir + viewDir);
+					float spec = glm::pow(glm::dot(halfwayDir, normal), m_shininess);
+					specular = spe_color * spec * light.lightColor;
+				} else {
+					ambient = diffuse = specular = glm::vec3(0.0f);
+				}
+
+                // attenuation
+				float distance = glm::length(light.lightPos - fragPos);
+				attenuation = 1.0f / (light.attenuation.x + light.attenuation.y * distance + light.attenuation.z * distance * distance);
 			}
 
 			fragColor.x += (ambient.x + diffuse.x + specular.x) * attenuation;

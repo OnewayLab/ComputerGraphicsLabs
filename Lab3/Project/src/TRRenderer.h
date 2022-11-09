@@ -35,7 +35,7 @@ namespace TinyRenderer
 		void setShaderPipeline(TRShadingPipeline::ptr shader);
 		void setViewerPos(const glm::vec3 &viewer);
 
-		int addPointLight(glm::vec3 pos, glm::vec3 atten, glm::vec3 color);
+		int addPointLight(glm::vec3 pos, glm::vec3 atten, glm::vec3 color, glm::vec3 direction, float cutOff);
 		TRPointLight &getPointLight(const int &index);
 
 		glm::mat4 getMVPMatrix();
@@ -59,7 +59,7 @@ namespace TinyRenderer
 		//Cliping auxiliary functions
 		std::vector<TRShadingPipeline::VertexData> clipingSutherlandHodgeman_aux(
 			const std::vector<TRShadingPipeline::VertexData> &polygon,
-			const int &axis, 
+			const int &axis,
 			const int &side) const;
 		bool isPointInsideInClipingFrustum(const glm::vec4 &p) const
 		{

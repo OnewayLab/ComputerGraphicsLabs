@@ -14,7 +14,7 @@ namespace TinyRenderer
 	{
 	public:
 		typedef std::shared_ptr<TRShadingPipeline> ptr;
-		
+
 		class VertexData
 		{
 		public:
@@ -38,8 +38,8 @@ namespace TinyRenderer
 		virtual ~TRShadingPipeline() = default;
 
 		//Vertex shader settting
-		void setModelMatrix(const glm::mat4 &model) 
-		{ 
+		void setModelMatrix(const glm::mat4 &model)
+		{
 			m_model_matrix = model;
 			//Refs: https://learnopengl-cn.github.io/02%20Lighting/02%20Basic%20Lighting/
 			m_inv_trans_model_matrix = glm::mat3(glm::transpose(glm::inverse(m_model_matrix)));
@@ -70,7 +70,7 @@ namespace TinyRenderer
 			const VertexData &v1,
 			const VertexData &v2,
 			const unsigned int &screen_width,
-			const unsigned int &screene_height, 
+			const unsigned int &screene_height,
 			std::vector<VertexData> &rasterized_points);
 		static void rasterize_fill_edge_function(
 			const VertexData &v0,
@@ -83,7 +83,7 @@ namespace TinyRenderer
 		//Textures and lights
 		static int upload_texture_2D(TRTexture2D::ptr tex);
 		static TRTexture2D::ptr getTexture2D(int index);
-		static int addPointLight(glm::vec3 pos, glm::vec3 atten, glm::vec3 color);
+		static int addPointLight(glm::vec3 pos, glm::vec3 atten, glm::vec3 color, glm::vec3 dir, float cutoff);
 		static TRPointLight &getPointLight(int index);
 		static void setViewerPos(const glm::vec3 &viewer) { m_viewer_pos = viewer; }
 		static glm::vec4 texture2D(const unsigned int &id, const glm::vec2 &uv);

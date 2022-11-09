@@ -145,11 +145,41 @@ namespace TinyRenderer
 
 	glm::vec4 TRTexture2DSampler::textureSampling_bilinear(const TRTexture2D &texture, glm::vec2 uv)
 	{
-		//Note: Delete this line when you try to implement Task 4.
-		return textureSampling_nearest(texture, uv);
-
 		//Task4: Implement bilinear sampling algorithm for texture sampling
 		// Note: You should use texture.readPixel() to read the pixel, and for instance,
 		//       use texture.readPixel(25,35,r,g,b,a) to read the pixel in (25, 35).
+
+		// Get the texture coordinates of the four surrounding texels
+		float u = uv.x * (texture.getWidth() - 1);
+		float v = uv.y * (texture.getHeight() - 1);
+		int u1 = u;
+		int v1 = v;
+		int u2 = u1 + 1;
+		int v2 = v1 + 1;
+
+		// Get the four surrounding texels
+		unsigned char r1, g1, b1, a1;
+		unsigned char r2, g2, b2, a2;
+		unsigned char r3, g3, b3, a3;
+		unsigned char r4, g4, b4, a4;
+		texture.readPixel(u1, v1, r1, g1, b1, a1);
+		texture.readPixel(u2, v1, r2, g2, b2, a2);
+		texture.readPixel(u1, v2, r3, g3, b3, a3);
+		texture.readPixel(u2, v2, r4, g4, b4, a4);
+
+		// Get the weights
+		float w1 = (u2 - u) * (v2 - v);
+		float w2 = (u - u1) * (v2 - v);
+		float w3 = (u2 - u) * (v - v1);
+		float w4 = (u - u1) * (v - v1);
+
+		// Get the weighted average
+		unsigned char r = w1 * r1 + w2 * r2 + w3 * r3 + w4 * r4;
+		unsigned char g = w1 * g1 + w2 * g2 + w3 * g3 + w4 * g4;
+		unsigned char b = w1 * b1 + w2 * b2 + w3 * b3 + w4 * b4;
+		unsigned char a = w1 * a1 + w2 * a2 + w3 * a3 + w4 * a4;
+
+		constexpr float denom = 1.0f / 255.0f;
+		return glm::vec4(r, g, b, a) * denom;
 	}
 }

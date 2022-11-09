@@ -67,11 +67,11 @@ int main(int argc, char* args[])
 
 	//Simple texture
 	//Note: delete this for Task 2
-	renderer->setShaderPipeline(std::make_shared<TRTextureShadingPipeline>());
+	// renderer->setShaderPipeline(std::make_shared<TRTextureShadingPipeline>());
 
 	//Phong lighting
 	//Note: Uncomment this for Task 2
-	//renderer->setShaderPipeline(std::make_shared<TRPhongShadingPipeline>());
+	renderer->setShaderPipeline(std::make_shared<TRPhongShadingPipeline>());
 
 	//Point light sources
 	glm::vec3 redLightPos = glm::vec3(0.0f, -0.05f, 1.2f);
@@ -113,7 +113,7 @@ int main(int argc, char* args[])
 		//Display to screen
 		double deltaTime = winApp->updateScreenSurface(
 			renderer->commitRenderedColorBuffer(),
-			width, 
+			width,
 			height,
 			4,
 			renderer->getNumberOfClipFaces(),
@@ -147,7 +147,7 @@ int main(int argc, char* args[])
 				glm::mat4 cameraRotMat(1.0f);
 				if(std::abs(deltaX) > std::abs(deltaY))
 					cameraRotMat = glm::rotate(glm::mat4(1.0f), -deltaX * 0.001f, glm::vec3(0, 1, 0));
-				else 
+				else
 					cameraRotMat = glm::rotate(glm::mat4(1.0f), -deltaY * 0.001f, glm::vec3(1, 0, 0));
 
 				cameraPos = glm::vec3(cameraRotMat * glm::vec4(cameraPos, 1.0f));

@@ -9,7 +9,7 @@ namespace TinyRenderer
 	enum TRTextureWarpMode
 	{
 		TR_REPEAT,
-		TR_CLAMP_TO_EDGE	
+		TR_CLAMP_TO_EDGE
 	};
 
 	//Texture filtering mode
@@ -59,9 +59,11 @@ namespace TinyRenderer
 		glm::vec3 lightPos;//Note: world space position of light source
 		glm::vec3 attenuation;
 		glm::vec3 lightColor;
+        glm::vec3 direction;
+        float cutOff;
 
-		TRPointLight(glm::vec3 pos, glm::vec3 atten, glm::vec3 color)
-			: lightPos(pos), attenuation(atten), lightColor(color) {}
+        TRPointLight(glm::vec3 pos, glm::vec3 atten, glm::vec3 color, glm::vec3 direction, float cutOff)
+			: lightPos(pos), attenuation(atten), lightColor(color), direction(direction), cutOff(cutOff) {}
 	};
 
 }
