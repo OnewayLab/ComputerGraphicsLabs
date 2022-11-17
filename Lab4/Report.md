@@ -496,3 +496,94 @@ void write_color(int x, int y, color pixel_color, int samples_per_pixel) {
 ![1668342121815](assets/1668342121815.png)
 
 ## Task 3 添加漫反射材质、金属材质和电解质材质
+
+### 漫反射材质
+
+漫反射材质不会发光，而是根据自己固有的颜色调节周围环境的颜色。漫反射材质表面反射光线的方向是随机的。
+
+有一束光照到物体表面上一点 $P$，要求它的漫反射光线。取切于点 $\boldsymbol{P}$ 的两个单位半径的球体，它们的球心分别为 $\boldsymbol{P}+\boldsymbol{n}$ 和 $\boldsymbol{P}-\boldsymbol{n}$，前者在表面的外部，后者在表面的内部。在前者内随机取一点 $\boldsymbol{S}$，射线 $\boldsymbol{S}-\boldsymbol{P}$ 就是一条漫反射光线。
+
+我们需要一种在单位半径的球体内随机取一点的方法：首先在 $x,y,z\in[-1,1]$ 的立方体内取一点，如果该点不在球体内就重新取。代码如下：
+
+```C++
+class vec3 {
+  public:
+    ...
+    inline static vec3 random() {
+        return vec3(random_double(), random_double(), random_double());
+    }
+
+    inline static vec3 random(double min, double max) {
+        return vec3(random_double(min, max), random_double(min, max), random_double(min, max));
+    }
+    ...
+}
+
+vec3 random_in_unit_sphere() {
+    while (true) {
+        auto p = vec3::random(-1, 1);
+        if (p.length_squared() >= 1) continue;
+        return p;
+    }
+}
+```
+
+修改 `ray_color()` 函数函数，`depth` 参数用于控制函数的递归深度：
+
+```C++
+color ray_color(const ray &r, const hittable &world) {
+    hit_record rec;
+    if (world.hit(r, 0, infinity, rec)) {
+        point3 target = rec.p + rec.normal + random_in_unit_sphere();
+        return 0.5 * ray_color(ray(rec.p, target - rec.p), world);
+    }
+    vec3 unit_direction = unit_vector(r.direction());
+    auto t = 0.5 * (unit_direction.y() + 1.0);
+    return (1.0 - t) * color(1.0, 1.0, 1.0) + t * color(0.5, 0.7, 1.0);
+}
+```
+
+效果如下：
+
+![1668671508404](assets/1668671508404.png)
+
+### 金属材质
+
+### 电解质材质
+
+
+## 问题
+
+### 1
+
+如果在 `rtweekend.h` 中包含了 `vec3` 而在 `vec3` 中又包含了 `rtweekend.h`，即使加了头文件保护符，也会报错：
+
+![1668671118460](assets/1668671118460.png)
+
+将 `rtweekend.h` 中的
+
+```
+#include "vec3.h"
+#include "ray.h"
+```
+
+去掉就好了
+
+### 2
+
+task3 在 `vec3.h` 中加入如下函数时会报错：
+
+```
+vec3 random_in_unit_sphere() {
+	while (true) {
+		auto p = vec3::random(-1, 1);
+		if (p.length_squared() >= 1) continue;
+		return p;
+	}
+}
+
+```
+
+![1668671249957](assets/1668671249957.png)
+
+加上 `inline` 关键字就好了
