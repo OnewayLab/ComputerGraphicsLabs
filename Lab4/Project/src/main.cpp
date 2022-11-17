@@ -87,6 +87,7 @@ void write_color(int x, int y, color pixel_color, int samples_per_pixel) {
     // Divide the color by the number of samples
     auto scale = 1.0 / samples_per_pixel;
     pixel_color *= scale;
+    pixel_color = color(sqrt(pixel_color.x()), sqrt(pixel_color.y()), sqrt(pixel_color.z()));
 
     // Note: x -> the column number, y -> the row number
     gCanvas[y][x] = pixel_color;
@@ -137,8 +138,8 @@ color ray_color(const ray &r, const hittable &world, int depth) {
     hit_record rec;
 
     if (depth <= 0) return color(0, 0, 0);
-    if (world.hit(r, 0, infinity, rec)) {
-        point3 target = rec.p + rec.normal + random_in_unit_sphere();
+    if (world.hit(r, 0.001, infinity, rec)) {
+        point3 target = rec.p + rec.normal + random_unit_vector();
         return 0.5 * ray_color(ray(rec.p, target - rec.p), world, depth - 1);
     }
     vec3 unit_direction = unit_vector(r.direction());

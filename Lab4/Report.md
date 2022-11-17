@@ -497,7 +497,9 @@ void write_color(int x, int y, color pixel_color, int samples_per_pixel) {
 
 ## Task 3 添加漫反射材质、金属材质和电解质材质
 
-### 漫反射材质
+### 3.1 漫反射材质
+
+#### 3.1.1 简单的漫反射材质
 
 漫反射材质不会发光，而是根据自己固有的颜色调节周围环境的颜色。漫反射材质表面反射光线的方向是随机的。
 
@@ -547,10 +549,51 @@ color ray_color(const ray &r, const hittable &world) {
 
 ![1668671508404](assets/1668671508404.png)
 
+#### 3.1.2 使用 Gamma 校正
+
+两个球体对每次反射吸收 50% 的光，但是上图中两个球体看起来都非常暗，这是因为几乎所有图像查看器都假设图像经过了 gamma 校正。简单起见，我们使用 gamma 2，即先把图像的颜色值提升为它们的平方根：
+
+```C++
+void write_color(int x, int y, color pixel_color, int samples_per_pixel) {
+    ...
+    pixel_color = color(sqrt(pixel_color.x()), sqrt(pixel_color.y()), sqrt(pixel_color.z()));
+    ...
+}
+```
+
+效果如下：
+
+![1668672899099](assets/1668672899099.png)
+
+#### 3.1.3 真正的 Lambertian 反射
+
+前面我们在单位半径的球体内随机取一点来决定漫反射的方向，单位半径球体内每个点被选中的概率服从均匀分布，下面我们将实现 Lambertian 分布，使得里法向量更近的点被选中的概率更大。我们通过随机选择单位球体上（而不是球体内）的点来实现它：
+
+```C++
+inline vec3 random_unit_vector() {
+	return unit_vector(random_in_unit_sphere());
+}
+```
+
+```C++
+color ray_color(const ray &r, const hittable &world, int depth) {
+    ...
+    if (world.hit(r, 0.001, infinity, rec)) {
+        point3 target = rec.p + rec.normal + random_unit_vector();
+        return 0.5 * ray_color(ray(rec.p, target - rec.p), world, depth - 1);
+    }
+    ...
+}
+
+```
+
+效果如下：
+
+![1668675433579](assets/1668675433579.png)
+
 ### 金属材质
 
 ### 电解质材质
-
 
 ## 问题
 
