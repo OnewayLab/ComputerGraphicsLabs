@@ -591,7 +591,158 @@ color ray_color(const ray &r, const hittable &world, int depth) {
 
 ![1668675433579](assets/1668675433579.png)
 
-### 金属材质
+### 3.2 金属材质
+
+#### 3.2.1 材质类
+
+我们用一个材质类来封装以下两种行为：
+
+* 产生散射光线；
+* 散射时表明散射光线应该衰减多少。
+
+代码如下：
+
+```C++
+#ifndef MATERIAL_H
+#define MATERIAL_H
+
+#include "ray.h"
+
+struct hit_record;
+
+class material {
+public:
+    virtual bool scatter(
+        const ray &r_in, const hit_record &rec, color &attenuation, ray &scattered) const = 0;
+};
+
+#endif
+```
+
+接下来我们在 `hit_record` 结构体中增加一个指向 `material` 对象的共享指针：
+
+```C++
+struct hit_record {
+    ...
+    shared_ptr<material> mat_ptr;
+    ...
+};
+```
+
+在 `sphere` 类中加入指向 `material` 对象的共享指针：
+
+```C++
+class sphere : public hittable {
+public:
+    sphere() {}
+    sphere(point3 cen, double r, shared_ptr<material> m) :
+        center(cen), radius(r), mat_ptr(m){};
+
+    virtual bool hit(const ray &r, double t_min, double t_max, hit_record &rec) const override;
+
+public:
+    point3 center;
+    double radius;
+    shared_ptr<material> mat_prt;
+};
+
+bool sphere::hit(const ray &r, double t_min, double t_max, hit_record &rec) const {
+    ...
+    rec.mat_ptr = mat_ptr;
+
+    return true;
+}
+```
+
+接下来对材料对光的散射和反射进行建模，先定义一种漫反射材质 `lambertian`：
+
+```C++
+class lambertian : public material {
+public:
+    lambertian(const color &a) :
+        albedo(a) {}
+
+    virtual bool scatter(
+        const ray &r_in, const hit_record &rec, color &attenuation, ray &scattered) const override {
+        auto scatter_direction = rec.normal + random_unit_vector();
+
+        // Catch degenerate scatter direction
+        if (scatter_direction.near_zero())
+            scatter_direction = rec.normal;
+
+        scattered = ray(rec.p, scatter_direction);
+        attenuation = albedo;
+        return true;
+    }
+
+public:
+    color albedo;
+};
+```
+
+接下来定义金属材质：
+
+```C++
+class metal : public material {
+public:
+    metal(const color &a) :
+        albedo(a) {}
+
+    virtual bool scatter(
+        const ray &r_in, const hit_record &rec, color &attenuation, ray &scattered) const override {
+        vec3 reflected = reflect(unit_vector(r_in.direction()), rec.normal);
+        scattered = ray(rec.p, reflected);
+        attenuation = albedo;
+        return (dot(scattered.direction(), rec.normal) > 0);
+    }
+
+public:
+    color albedo;
+};
+```
+
+最后修改计算光线颜色的函数：
+
+```C++
+color ray_color(const ray &r, const hittable &world, int depth) {
+    hit_record rec;
+
+    if (depth <= 0) return color(0, 0, 0);
+    if (world.hit(r, 0.001, infinity, rec)) {
+        ray scattered;
+        color attenuation;
+        if (rec.mat_ptr->scatter(r, rec, attenuation, scattered)) {
+            return attenuation * ray_color(scattered, world, depth - 1);
+        }
+        return color(0, 0, 0);
+    }
+    vec3 unit_direction = unit_vector(r.direction());
+    auto t = 0.5 * (unit_direction.y() + 1.0);
+    return (1.0 - t) * color(1.0, 1.0, 1.0) + t * color(0.5, 0.7, 1.0);
+}
+
+```
+
+现在，我们可以在 `main.cpp` 中增加一些金属材质的球体：
+
+```C++
+// World
+hittable_list world;
+auto material_ground = make_shared<lambertian>(color(0.8, 0.8, 0.0));
+auto material_center = make_shared<lambertian>(color(0.7, 0.3, 0.3));
+auto material_left = make_shared<metal>(color(0.8, 0.8, 0.8));
+auto material_right = make_shared<metal>(color(0.8, 0.6, 0.2));
+
+world.add(make_shared<sphere>(point3(0.0, -100.5, -1.0), 100.0, material_ground));
+world.add(make_shared<sphere>(point3(0.0, 0.0, -1.0), 0.5, material_center));
+world.add(make_shared<sphere>(point3(-1.0, 0.0, -1.0), 0.5, material_left));
+world.add(make_shared<sphere>(point3(1.0, 0.0, -1.0), 0.5, material_right));
+
+```
+
+效果如下：
+
+![1668869142000](assets/1668869142000.png)
 
 ### 电解质材质
 
