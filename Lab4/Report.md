@@ -744,7 +744,43 @@ world.add(make_shared<sphere>(point3(1.0, 0.0, -1.0), 0.5, material_right));
 
 ![1668869142000](assets/1668869142000.png)
 
-### 电解质材质
+#### 3.2.2 模糊反射
+
+类似于漫反射材质，我们可以给金属材质的反射光方向也增加一些随机性：
+
+```C++
+class metal : public material {
+public:
+    metal(const color &a, double f) :
+        albedo(a), fuzz(f < 1 ? f : 1) {}
+
+    virtual bool scatter(
+        const ray &r_in, const hit_record &rec, color &attenuation, ray &scattered) const override {
+        vec3 reflected = reflect(unit_vector(r_in.direction()), rec.normal);
+        scattered = ray(rec.p, reflected + fuzz * random_in_unit_sphere());
+        attenuation = albedo;
+        return (dot(scattered.direction(), rec.normal) > 0);
+    }
+
+public:
+    color albedo;
+    double fuzz;
+};
+```
+
+在 `main.cpp` 中传入模糊度参数：
+
+```C++
+auto material_left = make_shared<metal>(color(0.8, 0.8, 0.8), 0.3);
+auto material_right = make_shared<metal>(color(0.8, 0.6, 0.2), 1.0);
+```
+
+效果如下：
+
+![1668869762206](assets/1668869762206.png)
+
+
+
 
 ## 问题
 
