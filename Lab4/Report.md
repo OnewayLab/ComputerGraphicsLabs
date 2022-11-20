@@ -781,7 +781,7 @@ auto material_right = make_shared<metal>(color(0.8, 0.6, 0.2), 1.0);
 
 ### 3.3 电解质材质
 
-#### 3.3.1 Snell 定律
+#### 3.3.1 折射
 
 电解质材质对光的折射可以用 Snell 定律来描述：
 
@@ -851,6 +851,45 @@ auto material_right = make_shared<metal>(color(0.8, 0.6, 0.2), 1.0);
 效果如下：
 
 ![1668933012854](assets/1668933012854.png)
+
+#### 3.3.2 全内反射
+
+上面实现的效果依然是不正确的，因为当射线位于材料内部且折射系数很高时，Snell 定律并没有实数解，此时材料不会折射光线，而是反射光线。
+
+```C++
+virtual bool scatter(
+    const ray& r_in,
+    const hit_record& rec,
+    color& attenuation,
+    ray& scattered
+) const override {
+    attenuation = color(1.0, 1.0, 1.0);
+    double refraction_ratio = rec.front_face ? (1.0 / ir) : ir;
+    vec3 unit_direction = unit_vector(r_in.direction());
+    double cos_theta = fmin(dot(-unit_direction, rec.normal), 1.0);
+    double sin_theta = sqrt(1.0 - cos_theta * cos_theta);
+    bool cannot_refract = refraction_ratio * sin_theta > 1.0;
+    vec3 direction;
+    if (cannot_refract) {
+        direction = reflect(unit_direction, rec.normal);
+    } else {
+        direction = refract(unit_direction, rec.normal, refraction_ratio);
+    }
+    scattered = ray(rec.p, direction);
+    return true;
+}
+```
+
+效果如下：
+
+![1668934805935](assets/1668934805935.png)
+
+
+
+
+
+
+
 
 
 ## 问题

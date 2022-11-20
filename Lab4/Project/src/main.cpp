@@ -42,11 +42,12 @@ const int gWidth = 800;
 const int gHeight = static_cast<int>(gWidth / aspect_ratio);
 
 void rendering();
-color ray_color(const ray &r, const hittable &world, int max_depth);
+color ray_color(const ray& r, const hittable& world, int max_depth);
 
-int main(int argc, char *args[]) {
+int main(int argc, char* args[]) {
     // Create window app handle
-    WindowsApp::ptr winApp = WindowsApp::getInstance(gWidth, gHeight, "CGAssignment4: Ray Tracing");
+    WindowsApp::ptr winApp =
+        WindowsApp::getInstance(gWidth, gHeight, "CGAssignment4: Ray Tracing");
     if (winApp == nullptr) {
         std::cerr << "Error: failed to create a window handler" << std::endl;
         return -1;
@@ -76,19 +77,22 @@ int main(int argc, char *args[]) {
 void write_color(int x, int y, color pixel_color, int samples_per_pixel) {
     // Out-of-range detection
     if (x < 0 || x >= gWidth) {
-        std::cerr << "Warnning: try to write the pixel out of range: (x,y) -> (" << x << "," << y << ")" << std::endl;
+        std::cerr << "Warnning: try to write the pixel out of range: (x,y) -> ("
+                  << x << "," << y << ")" << std::endl;
         return;
     }
 
     if (y < 0 || y >= gHeight) {
-        std::cerr << "Warnning: try to write the pixel out of range: (x,y) -> (" << x << "," << y << ")" << std::endl;
+        std::cerr << "Warnning: try to write the pixel out of range: (x,y) -> ("
+                  << x << "," << y << ")" << std::endl;
         return;
     }
 
     // Divide the color by the number of samples
     auto scale = 1.0 / samples_per_pixel;
     pixel_color *= scale;
-    pixel_color = color(sqrt(pixel_color.x()), sqrt(pixel_color.y()), sqrt(pixel_color.z()));
+    pixel_color = color(
+        sqrt(pixel_color.x()), sqrt(pixel_color.y()), sqrt(pixel_color.z()));
 
     // Note: x -> the column number, y -> the row number
     gCanvas[y][x] = pixel_color;
@@ -109,12 +113,14 @@ void rendering() {
     // World
     hittable_list world;
     auto material_ground = make_shared<lambertian>(color(0.8, 0.8, 0.0));
-    auto material_center = make_shared<dielectric>(1.5);
+    auto material_center = make_shared<lambertian>(color(0.1, 0.2, 0.5));
     auto material_left = make_shared<dielectric>(1.5);
-    auto material_right = make_shared<metal>(color(0.8, 0.6, 0.2), 1.0);
+    auto material_right = make_shared<metal>(color(0.8, 0.6, 0.2), 0.0);
 
-    world.add(make_shared<sphere>(point3(0.0, -100.5, -1.0), 100.0, material_ground));
-    world.add(make_shared<sphere>(point3(0.0, 0.0, -1.0), 0.5, material_center));
+    world.add(
+        make_shared<sphere>(point3(0.0, -100.5, -1.0), 100.0, material_ground));
+    world.add(
+        make_shared<sphere>(point3(0.0, 0.0, -1.0), 0.5, material_center));
     world.add(make_shared<sphere>(point3(-1.0, 0.0, -1.0), 0.5, material_left));
     world.add(make_shared<sphere>(point3(1.0, 0.0, -1.0), 0.5, material_right));
 
@@ -137,12 +143,14 @@ void rendering() {
 
 
     double endFrame = clock();
-    double timeConsuming = static_cast<double>(endFrame - startFrame) / CLOCKS_PER_SEC;
+    double timeConsuming =
+        static_cast<double>(endFrame - startFrame) / CLOCKS_PER_SEC;
     std::cout << "Ray-tracing based rendering over..." << std::endl;
-    std::cout << "The rendering task took " << timeConsuming << " seconds" << std::endl;
+    std::cout << "The rendering task took " << timeConsuming << " seconds"
+              << std::endl;
 }
 
-color ray_color(const ray &r, const hittable &world, int depth) {
+color ray_color(const ray& r, const hittable& world, int depth) {
     hit_record rec;
 
     if (depth <= 0) return color(0, 0, 0);
