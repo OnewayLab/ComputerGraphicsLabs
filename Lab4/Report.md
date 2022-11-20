@@ -779,7 +779,78 @@ auto material_right = make_shared<metal>(color(0.8, 0.6, 0.2), 1.0);
 
 ![1668869762206](assets/1668869762206.png)
 
+### 3.3 电解质材质
 
+#### 3.3.1 Snell 定律
+
+电解质材质对光的折射可以用 Snell 定律来描述：
+
+$$
+\eta\sin\theta=\eta'\sin\theta'
+$$
+
+![1668870611012](assets/1668870611012.png)
+
+折射光线 $\boldsymbol{R}'$ 可以分解为平行和垂直于 $\boldsymbol{n}'$ 的两部分：
+
+$$
+\begin{array}{c}
+\mathbf{R}^{\prime}=\mathbf{R}_{\perp}^{\prime}+\mathbf{R}_{\|}^{\prime} \\
+\mathbf{R}_{\perp}^{\prime}=\frac{\eta}{\eta^{\prime}}(\mathbf{R}+\cos \theta \mathbf{n}) = \frac{\eta}{\eta^{\prime}}(\mathbf{R}+(-\mathbf{R}\mathbf{n}) \mathbf{n}) \\
+\mathbf{R}_{\|}^{\prime}=-\sqrt{1-\left|\mathbf{R}_{\perp}^{\prime}\right|^{2}} \mathbf{n}
+\end{array}
+$$
+
+基于以上数学原理，在 `vec3.h` 中加入计算折射的函数：
+
+```C++
+vec3 refract(const vec3 &uv, const vec3 &n, double etai_over_etat) {
+    auto cos_theta = fmin(dot(-uv, n), 1.0);
+    vec3 r_out_perp = etai_over_etat * (uv + cos_theta * n);
+    vec3 r_out_parallel = -sqrt(fabs(1.0 - r_out_perp.length_squared())) * n;
+    return r_out_perp + r_out_parallel;
+}
+```
+
+然后我们就可以编写电解质材料类了：
+
+```C++
+class dielectric : public material {
+public:
+    dielectric(double index_of_refraction) : ir(index_of_refraction) {}
+
+    virtual bool scatter(
+        const ray& r_in,
+        const hit_record& rec,
+        color& attenuation,
+        ray& scattered
+    ) const override {
+        attenuation = color(1.0, 1.0, 1.0);
+        double refraction_ratio = rec.front_face ? (1.0 / ir) : ir;
+        vec3 unit_direction = unit_vector(r_in.direction());
+        vec3 refracted = refract(unit_direction, rec.normal, refraction_ratio);
+
+        scattered = ray(rec.p, refracted);
+        return true;
+    }
+
+public:
+    double ir;
+};
+```
+
+最后我们把两个球体的材质改成电解质材料：
+
+```C++
+auto material_ground = make_shared<lambertian>(color(0.8, 0.8, 0.0));
+auto material_center = make_shared<dielectric>(1.5);
+auto material_left = make_shared<dielectric>(1.5);
+auto material_right = make_shared<metal>(color(0.8, 0.6, 0.2), 1.0);
+```
+
+效果如下：
+
+![1668933012854](assets/1668933012854.png)
 
 
 ## 问题
