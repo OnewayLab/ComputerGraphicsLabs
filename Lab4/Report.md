@@ -943,6 +943,282 @@ world.add(make_shared<sphere>(point3(1.0, 0.0, -1.0), 0.5, material_right));
 
 ![1668935419951](assets/1668935419951.png)
 
+## Task 4 实现摄像机的聚焦模糊效果
+
+### 4.1 可移动的摄像机
+
+#### 4.1.1 摄像机视图几何学
+
+让射线从原点出发照向 $z=-1$ 平面：
+
+![1668936354876](assets/1668936354876.png)
+
+其中，$h=\tan{\theta\over2}$
+
+修改 `camera` 类的构造函数：
+
+```C++
+camera(
+    double vfov,
+    double aspect_ratio
+) {
+    auto theta = degrees_to_radians(vfov);
+    auto h = tan(theta / 2);
+    auto viewport_height = 2.0 * h;
+    auto viewport_width = aspect_ratio * viewport_height;
+    auto focal_length = 1.0;
+    origin = point3(0, 0, 0);
+    horizontal = vec3(viewport_width, 0, 0);
+    vertical = vec3(0, viewport_height, 0);
+    lower_left_corner = origin - horizontal / 2 - vertical / 2 - vec3(0, 0, focal_length);
+}
+```
+
+修改 `main.cpp`：
+
+```C++
+// World
+auto R = cos(pi / 4);
+hittable_list world;
+auto material_left = make_shared<lambertian>(color(0, 0, 1));
+auto material_right = make_shared<lambertian>(color(1, 0, 0));
+world.add(make_shared<sphere>(point3(-R, 0, -1), R, material_left));
+world.add(make_shared<sphere>(point3(R, 0, -1), R, material_right));
+
+// Camera
+camera cam(90.0, aspect_ratio);
+```
+
+效果如下：
+
+![1668936690788](assets/1668936690788.png)
+
+#### 4.1.2 改变摄像机的位置和朝向
+
+摄像机位置用 `lookfrom` 表示，摄像机朝向用 `lookat` 表示，朝上的方向用 `vup` 表示：
+
+![1668946496701](assets/1668946496701.png)
+
+修改 `camera` 类：
+
+```C++
+camera(
+    point3 lookfrom,
+    point3 lookat,
+    vec3 vup,
+    double vfov,
+    double aspect_ratio
+) {
+    auto theta = degrees_to_radians(vfov);
+    auto h = tan(theta / 2);
+    auto viewport_height = 2.0 * h;
+    auto viewport_width = aspect_ratio * viewport_height;
+    auto w = unit_vector(lookfrom - lookat);
+    auto u = unit_vector(cross(vup, w));
+    auto v = cross(w, u);
+    origin = lookfrom;
+    horizontal = viewport_width * u;
+    vertical = viewport_height * v;
+    lower_left_corner = origin - horizontal / 2 - vertical / 2 - w;
+}
+ray get_ray(double s, double t) const {
+    return ray(origin, lower_left_corner + s * horizontal + t * vertical - origin);
+}
+```
+
+修改 `main.cpp`：
+
+```C++
+// World
+hittable_list world;
+
+auto material_ground = make_shared<lambertian>(color(0.8, 0.8, 0.0));
+auto material_center = make_shared<lambertian>(color(0.1, 0.2, 0.5));
+auto material_left = make_shared<dielectric>(1.5);
+auto material_right = make_shared<metal>(color(0.8, 0.6, 0.2), 0.0);
+
+world.add(make_shared<sphere>(point3(0.0, -100.5, -1.0), 100.0, material_ground));
+world.add(make_shared<sphere>(point3(0.0, 0.0, -1.0), 0.5, material_center));
+world.add(make_shared<sphere>(point3(-1.0, 0.0, -1.0), 0.5, material_left));
+world.add(make_shared<sphere>(point3(-1.0, 0.0, -1.0), -0.45, material_left));
+world.add(make_shared<sphere>(point3(1.0, 0.0, -1.0), 0.5, material_right));
+
+// Camera
+camera cam(point3(-2, 2, 1), point3(0, 0, -1), vec3(0, 1, 0), 90, aspect_ratio);
+```
+
+效果如下：
+
+![1668946901576](assets/1668946901576.png)
+
+并且我们可以修改视野的大小：
+
+```C++
+// Camera
+camera cam(point3(-2, 2, 1), point3(0, 0, -1), vec3(0, 1, 0), 20, aspect_ratio);
+```
+
+![1668947037306](assets/1668947037306.png)
+
+### 4.2 失焦模糊
+
+#### 4.2.1 薄透镜近似
+
+在前面的实现中，我们假设所有“光线”都是从一点发出的，然而实际上，摄像机不止通过一个“针孔”接收光线，而是通过一个较大的洞接收光线并使用透镜汇聚光线，所以在失焦的地方会产生模糊。
+
+摄像机镜头的简化模型如下：
+
+![1668947721878](assets/1668947721878.png)
+
+但是我们在渲染图形时并不需要关心摄像机内部的结构，我们只需要假设“光线”是从透镜发出的即可：
+
+![1668947833796](assets/1668947833796.png)
+
+修改 `camera` 类：
+
+```C++
+class camera {
+public:
+    camera(
+        point3 lookfrom,
+        point3 lookat,
+        vec3 vup,
+        double vfov,
+        double aspect_ratio,
+        double aperture,
+        double focus_dist
+    ) {
+        auto theta = degrees_to_radians(vfov);
+        auto h = tan(theta / 2);
+        auto viewport_height = 2.0 * h;
+        auto viewport_width = aspect_ratio * viewport_height;
+
+        w = unit_vector(lookfrom - lookat);
+        u = unit_vector(cross(vup, w));
+        v = cross(w, u);
+
+        origin = lookfrom;
+        horizontal = focus_dist * viewport_width * u;
+        vertical = focus_dist * viewport_height * v;
+        lower_left_corner = origin - horizontal / 2 - vertical / 2 - focus_dist * w;
+
+        lens_radius = aperture / 2;
+    }
+
+    ray get_ray(double s, double t) const {
+        vec3 rd = lens_radius * random_in_unit_disk();
+        vec3 offset = u * rd.x() + v * rd.y();
+
+        return ray(
+            origin + offset,
+            lower_left_corner + s * horizontal + t * vertical - origin - offset
+        );
+    }
+
+private:
+    point3 origin;
+    point3 lower_left_corner;
+    vec3 horizontal;
+    vec3 vertical;
+    vec3 u, v, w;
+    double lens_radius;
+};
+```
+
+如果使用大光圈：
+
+```C++
+// Camera
+point3 lookfrom(3, 3, 2);
+point3 lookat(0, 0, -1);
+vec3 vup(0, 1, 0);
+auto dist_to_focus = (lookfrom - lookat).length();
+auto aperture = 2.0;
+camera cam(lookfrom, lookat, vup, 20, aspect_ratio, aperture, dist_to_focus);
+```
+
+效果如下：
+
+![1668948479288](assets/1668948479288.png)
+
+## Task 5 渲染一张炫酷真实的图片
+
+现在渲染最终效果图：一堆随机球体。
+
+```C++
+hittable_list random_scene() {
+    hittable_list world;
+
+    auto ground_material = make_shared<lambertian>(color(0.5, 0.5, 0.5));
+    world.add(make_shared<sphere>(point3(0, -1000, 0), 1000, ground_material));
+
+    for (int a = -11; a < 11; a++) {
+        for (int b = -11; b < 11; b++) {
+            auto choose_mat = random_double();
+            point3 center(
+                a + 0.9 * random_double(), 0.2, b + 0.9 * random_double());
+
+            if ((center - point3(4, 0.2, 0)).length() > 0.9) {
+                shared_ptr<material> sphere_material;
+
+                if (choose_mat < 0.8) {
+                    // diffuse
+                    auto albedo = color::random() * color::random();
+                    sphere_material = make_shared<lambertian>(albedo);
+                    world.add(
+                        make_shared<sphere>(center, 0.2, sphere_material));
+                } else if (choose_mat < 0.95) {
+                    // metal
+                    auto albedo = color::random(0.5, 1);
+                    auto fuzz = random_double(0, 0.5);
+                    sphere_material = make_shared<metal>(albedo, fuzz);
+                    world.add(
+                        make_shared<sphere>(center, 0.2, sphere_material));
+                } else {
+                    // glass
+                    sphere_material = make_shared<dielectric>(1.5);
+                    world.add(
+                        make_shared<sphere>(center, 0.2, sphere_material));
+                }
+            }
+        }
+    }
+
+    auto material1 = make_shared<dielectric>(1.5);
+    world.add(make_shared<sphere>(point3(0, 1, 0), 1.0, material1));
+
+    auto material2 = make_shared<lambertian>(color(0.4, 0.2, 0.1));
+    world.add(make_shared<sphere>(point3(-4, 1, 0), 1.0, material2));
+
+    auto material3 = make_shared<metal>(color(0.7, 0.6, 0.5), 0.0);
+    world.add(make_shared<sphere>(point3(4, 1, 0), 1.0, material3));
+
+    return world;
+}
+```
+
+```C++
+// Image
+const int image_width = gWidth;
+const int image_height = gHeight;
+const int samples_per_pixel = 500;
+const int max_depth = 50;
+
+// World
+hittable_list world = random_scene();
+
+// Camera
+point3 lookfrom(13, 2, 3);
+point3 lookat(0, 0, 0);
+vec3 vup(0, 1, 0);
+auto dist_to_focus = 10.0;
+auto aperture = 0.1;
+camera cam(
+    lookfrom, lookat, vup, 20, aspect_ratio, aperture, dist_to_focus);
+```
+
+![1668951946275](assets/1668951946275.png)
+
 ## 问题
 
 ### 1
