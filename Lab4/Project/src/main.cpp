@@ -33,6 +33,7 @@ THE SOFTWARE.*/
 #include "sphere.h"
 #include "camera.h"
 #include "material.h"
+#include "bvh.h"
 
 static std::vector<std::vector<color>> gCanvas;    // Canvas
 
@@ -112,7 +113,7 @@ void rendering() {
     const int max_depth = 50;
 
     // World
-    hittable_list world = random_scene();
+    auto world = bvh_node(random_scene(), 0, 0);
 
     // Camera
     point3 lookfrom(13, 2, 3);

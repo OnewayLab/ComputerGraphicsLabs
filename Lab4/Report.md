@@ -6,7 +6,7 @@
 
 ## Task 1 完成射线类和简单的摄像机构建，并渲染一个渐变的蓝色天空背景图
 
-### 射线类
+### 1.1 射线类
 
 射线的表示：
 
@@ -41,7 +41,7 @@ public:
 #endif
 ```
 
-### 构建摄像机
+### 1.2 构建摄像机
 
 光线追踪通过让光线通过像素来计算它们最终进入人眼时的颜色，主要步骤如下：
 
@@ -65,7 +65,7 @@ auto vertical = vec3(0, viewport_height, 0);
 auto lower_left_corner = origin - horizontal / 2 - vertical / 2 - vec3(0, 0, focal_length);
 ```
 
-### 渲染渐变蓝色天空背景
+### 1.3 渲染渐变蓝色天空背景
 
 我们写一个根据 $y$ 轴坐标返回从白到蓝渐变色的函数：
 
@@ -94,7 +94,7 @@ write_color(i, j, pixel_color);
 
 ## Task2 渲染一个简单的球形物体
 
-### 添加一个球体
+### 2.1 添加一个球体
 
 设球心为 $\boldsymbol{C}=(C_x,C_y,C_z)$，球的半径为 $r$，则球面上的点 $\boldsymbol P$ 可以用如下方程表示：
 
@@ -139,7 +139,7 @@ bool hit_sphere(const point3 &center, double radius, const ray &r)
 
 但是这样做存在一个问题，我们没有区分物体是在我们面前还是背后（如果方程的解 $t<0$，那么物体在我们背后）。
 
-### 表面法线
+### 2.2 表面法线
 
 球体上点 $\boldsymbol P$ 处的表面法线可以用 $\boldsymbol{P}-\boldsymbol{C}$ 表示，我们通过把法向量的 $x,y,z$ 坐标映射到 $[0,1]$ 并解释为 RGB 值来可视化这些法线：
 
@@ -175,7 +175,7 @@ double hit_sphere(const point3 &center, double radius, const ray &r)
 
 ![1668334774539](assets/1668334774539.png)
 
-### 简化判断射线与球面相交的代码
+### 2.3 简化判断射线与球面相交的代码
 
 上面我们用求根公式求解一元二次方程来判断射线与球面是否相交，我们可以对求根公式进行简化来减少计算量：
 
@@ -266,7 +266,7 @@ bool sphere::hit(const ray& r, double t_min, double t_max, hit_record& rec) cons
 }
 ```
 
-### 正面和背面
+### 2.4 正面和背面
 
 在前面的代码中，表面法线总是从球体的内部指向外部，无论射线是从内部射向球面还是从外部射向球面的。这样，当法线和射线方向相反时，说明射线是从物体外部射入的；当法线和射线方向相同时，说明射线是从物体内部射出的，通过射线和法向量做点乘就可以判断正反面。
 
@@ -297,7 +297,7 @@ bool sphere::hit(const ray& r, double t_min, double t_max, hit_record& rec) cons
 }
 ```
 
-### `hittable` 对象的列表
+### 2.5  `hittable` 对象的列表
 
 ```C++
 class hittable_list : public hittable {
@@ -332,7 +332,7 @@ bool hittable_list::hit(const ray& r, double t_min, double t_max, hit_record& re
 }
 ```
 
-### 常用常量和函数
+### 2.6 常用常量和函数
 
 我们在头文件 `rtweekend.h` 中定义无穷大和 $\pi$ 等常量和一些函数：
 
@@ -423,7 +423,7 @@ color ray_color(const ray &r, const hittable& world)
 
 ![1668338927979](assets/1668338927979.png)
 
-### 反走样
+### 2.7 反走样
 
 创建一个 `camera` 类来管理虚拟摄像机和场景采样任务：
 
@@ -943,6 +943,42 @@ world.add(make_shared<sphere>(point3(1.0, 0.0, -1.0), 0.5, material_right));
 
 ![1668935419951](assets/1668935419951.png)
 
+### 3.4 遇到的问题及解决方法
+
+#### 问题一
+
+如果在 `rtweekend.h` 中包含了 `vec3` 而在 `vec3` 中又包含了 `rtweekend.h`，即使加了头文件保护符，也会报错：
+
+![1668671118460](assets/1668671118460.png)
+
+将 `rtweekend.h` 中的
+
+```
+#include "vec3.h"
+#include "ray.h"
+```
+
+去掉就好了
+
+#### 问题二
+
+在 `vec3.h` 中加入如下函数时会报错：
+
+```
+vec3 random_in_unit_sphere() {
+	while (true) {
+		auto p = vec3::random(-1, 1);
+		if (p.length_squared() >= 1) continue;
+		return p;
+	}
+}
+
+```
+
+![1668671249957](assets/1668671249957.png)
+
+加上 `inline` 关键字就好了。
+
 ## Task 4 实现摄像机的聚焦模糊效果
 
 ### 4.1 可移动的摄像机
@@ -1219,38 +1255,229 @@ camera cam(
 
 ![1668951946275](assets/1668951946275.png)
 
-## 问题
+## Task 6 为场景物体构建一棵 BVH 树，加速追踪的射线与场景求交计算过程
 
-### 1
+计算射线与物体是否相交是光线追踪算法耗时长的主要原因，我们可以通过为物体创建包围盒加快求交的计算速度。我们把场景中的物体划分为若干子集，每个子集中的物体属于一个包围盒，不同包围盒可以相交。更进一步，包围盒可以形成一个层次结构。为了方便射线与包围盒的求交，我们让包围盒的各边与坐标轴平行，这样的包围盒称为 AABB。
 
-如果在 `rtweekend.h` 中包含了 `vec3` 而在 `vec3` 中又包含了 `rtweekend.h`，即使加了头文件保护符，也会报错：
+`aabb` 类如下：
 
-![1668671118460](assets/1668671118460.png)
+```C++
+class aabb {
+public:
+    aabb() {}
+    aabb(const point3& a, const point3& b) : minimum(a), maximum(b) {}
 
-将 `rtweekend.h` 中的
+    point3 min() const { return minimum; }
+    point3 max() const { return maximum; }
 
+    bool hit(const ray& r, double t_min, double t_max) const {
+        for (int a = 0; a < 3; a++) {
+            auto invD = 1.0f / r.direction()[a];
+            auto t0 = (min()[a] - r.origin()[a]) * invD;
+            auto t1 = (max()[a] - r.origin()[a]) * invD;
+            if (invD < 0.0f) std::swap(t0, t1);
+            t_min = t0 > t_min ? t0 : t_min;
+            t_max = t1 < t_max ? t1 : t_max;
+            if (t_max <= t_min) return false;
+        }
+        return true;
+    }
+
+public:
+    point3 minimum;
+    point3 maximum;
+};
 ```
-#include "vec3.h"
-#include "ray.h"
+
+现在我们要给场景中的物体添加包围盒，首先给基类 `hittable` 添加一个用于返回物体包围盒的虚函数：
+
+```C++
+virtual bool bounding_box(double time0, double time1, aabb& output_box) const = 0;
 ```
 
-去掉就好了
+在球体类 `sphere` 中实现这个函数：
 
-### 2
-
-task3 在 `vec3.h` 中加入如下函数时会报错：
-
+```C++
+bool sphere::bounding_box(double time0, double time1, aabb& output_box) const {
+    output_box = aabb(
+        center - vec3(radius, radius, radius),
+        center + vec3(radius, radius, radius)
+    );
+    return true;
+}
 ```
-vec3 random_in_unit_sphere() {
-	while (true) {
-		auto p = vec3::random(-1, 1);
-		if (p.length_squared() >= 1) continue;
-		return p;
-	}
+
+为物体的列表计算包围盒：
+
+```C++
+aabb surrounding_box(aabb box0, aabb box1) {
+    point3 small(
+        fmin(box0.min().x(), box1.min().x()),
+        fmin(box0.min().y(), box1.min().y()),
+        fmin(box0.min().z(), box1.min().z()));
+    point3 big(
+        fmax(box0.max().x(), box1.max().x()),
+        fmax(box0.max().y(), box1.max().y()),
+        fmax(box0.max().z(), box1.max().z()));
+    return aabb(small, big);
+}
+```
+
+```C++
+bool hittable_list::bounding_box(double time0, double time1, aabb& output_box) const {
+    if (objects.empty()) return false;
+
+    aabb temp_box;
+    bool first_box = true;
+
+    for (const auto& object : objects) {
+        if (!object->bounding_box(time0, time1, temp_box)) return false;
+        output_box = first_box ? temp_box : surrounding_box(output_box, temp_box);
+        first_box = false;
+    }
+
+    return true;
+}
+```
+
+`bvh_node` 类：
+
+```C++
+class bvh_node : public hittable {
+public:
+    bvh_node();
+
+    bvh_node(const hittable_list& list, double time0, double time1)
+        : bvh_node(list.objects, 0, list.objects.size(), time0, time1) {}
+    bvh_node(
+        const std::vector<shared_ptr<hittable>>& src_objects,
+        size_t start,
+        size_t end,
+        double time0,
+        double time1);
+
+    virtual bool hit(const ray& r, double t_min, double t_max, hit_record& rec)
+        const override;
+    virtual bool
+    bounding_box(double time0, double time1, aabb& output_box) const override;
+
+public:
+    shared_ptr<hittable> left;
+    shared_ptr<hittable> right;
+    aabb box;
+};
+
+inline bool box_compare(
+    const shared_ptr<hittable> a,
+    const shared_ptr<hittable> b,
+    int axis) {
+    aabb box_a;
+    aabb box_b;
+    if (!a->bounding_box(0, 0, box_a) || !b->bounding_box(0, 0, box_b))
+        std::cerr << "No bounding box in bvh_node constructor. \n";
+    return box_a.min().e[axis] < box_b.min().e[axis];
+}
+
+inline bool
+box_x_compare(const shared_ptr<hittable> a, const shared_ptr<hittable> b) {
+    return box_compare(a, b, 0);
+}
+
+inline bool
+box_y_compare(const shared_ptr<hittable> a, const shared_ptr<hittable> b) {
+    return box_compare(a, b, 1);
+}
+
+inline bool
+box_z_compare(const shared_ptr<hittable> a, const shared_ptr<hittable> b) {
+    return box_compare(a, b, 2);
+}
+
+bvh_node::bvh_node(
+    const std::vector<shared_ptr<hittable>>& src_objects,
+    size_t start,
+    size_t end,
+    double time0,
+    double time1) {
+    auto objects =
+        src_objects;    // Create a modifiable array of the source scene objects
+
+    int axis = random_int(0, 2);
+    auto comparator = (axis == 0) ? box_x_compare :
+                      (axis == 1) ? box_y_compare :
+                                    box_z_compare;
+    size_t object_span = end - start;
+
+    if (object_span == 1) {
+        left = right = objects[start];
+    } else if (object_span == 2) {
+        if (comparator(objects[start], objects[start + 1])) {
+            left = objects[start];
+            right = objects[start + 1];
+        } else {
+            left = objects[start + 1];
+            right = objects[start];
+        }
+    } else {
+        std::sort(objects.begin() + start, objects.begin() + end, comparator);
+
+        auto mid = start + object_span / 2;
+        left = make_shared<bvh_node>(objects, start, mid, time0, time1);
+        right = make_shared<bvh_node>(objects, mid, end, time0, time1);
+    }
+
+    aabb box_left, box_right;
+
+    if (!left->bounding_box(time0, time1, box_left)
+        || !right->bounding_box(time0, time1, box_right))
+        std::cerr << "No bounding box in bvh_node constructor.\n";
+
+    box = surrounding_box(box_left, box_right);
+}
+
+bool bvh_node::bounding_box(double time0, double time1, aabb& output_box)
+    const {
+    output_box = box;
+    return true;
+}
+
+bool bvh_node::hit(const ray& r, double t_min, double t_max, hit_record& rec)
+    const {
+    if (!box.hit(r, t_min, t_max)) return false;
+
+    bool hit_left = left->hit(r, t_min, t_max, rec);
+    bool hit_right = right->hit(r, t_min, hit_left ? rec.t : t_max, rec);
+
+    return hit_left || hit_right;
 }
 
 ```
 
-![1668671249957](assets/1668671249957.png)
+根据教程编写以上代码之后，虽然能够通过编译，但是执行时渲染时间并没有减少，检查后发现是因为没有在 `main.cpp` 中调用 `bvh_node()` 建立 BVH，应该修改如下：
 
-加上 `inline` 关键字就好了
+```C++
+...
+// World
+auto world = bvh_node(random_scene(), 0, 0);
+...
+```
+
+使用 BVH 前渲染耗时 1976.83 秒：
+
+![1669296645846](assets/1669296645846.png)
+
+使用 BVH 后渲染耗时 365.689 秒：
+
+![1669817053999](assets/1669817053999.png)
+
+![1669817035383](assets/1669817035383.png)
+
+## Task 7 对光线追踪渲染的理解以及困惑、感想和收获
+
+#### 7.1 对光线追踪渲染的理解
+
+光线追踪是一种全局光照明模型，它能够渲染出非常真实的效果，但是由于计算量大，光线追踪渲染比我们前面学习的 Phong 等局部光照明模型速度慢很多。它通过追踪每条光线在传播的过程中（可能发生反射和折射）与场景中的物体是否相交来为光线“染色”，最终渲染出整个场景。但是，它并不是追踪从光源发出的光线，而是根据光路可逆的原理，追踪从摄像机发出的“光线”。
+
+#### 7.2 感想和收获
+
+通过本次实验，我跟着教程一步步编写程序，最终渲染出了一张非常炫酷真实的图片。虽然本次实验的内容比较多，但是教程非常详细易懂，相比于前几次的“填空式实验”，本次实验的大部分代码都是自己编写的，这让我更加透彻地掌握了光线追踪渲染器的整体框架和算法细节。
