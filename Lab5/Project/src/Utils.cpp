@@ -117,10 +117,10 @@ void BezierCurve::evaluate(const double &t)
 	generateAuxiliaryLines(t);
 
 	// Task1
-	Point2D bp = implementTask1(m_controlPoints, t);
+	// Point2D bp = implementTask1(m_controlPoints, t);
 
 	// Task2
-	//Point2D bp = implementTask2(m_controlPoints, t);
+	Point2D bp = implementTask2(m_controlPoints, t);
 
 	m_beizerPoints.back().push_back(bp);
 }
@@ -155,7 +155,14 @@ Point2D BezierCurve::implementTask2(const std::vector<Point2D> &points, const do
 {
 	//Task2: implement de Casteljau algorithm for Bezier curve
 	// Note: you should use Point2D::lerp().
-
-	return Point2D(0, 0);
-
+	auto points_copy = points;
+	while (points_copy.size() > 1) {
+		std::vector<Point2D> tmp;
+		for (int i = 0; i < points_copy.size() - 1; ++i) {
+			Point2D point = Point2D::lerp(points_copy[i], points_copy[i + 1], t);
+			tmp.push_back(point);
+		}
+		points_copy = std::move(tmp);
+	}
+	return points_copy[0];
 }
