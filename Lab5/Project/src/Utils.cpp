@@ -1,4 +1,6 @@
 #include "Utils.h"
+#include <cmath>
+#include <iostream>
 
 void BezierCurve::clearAll()
 {
@@ -126,9 +128,27 @@ void BezierCurve::evaluate(const double &t)
 Point2D BezierCurve::implementTask1(const std::vector<Point2D> &points, const double &t) const
 {
 	//Task1: implement Bezier curve generation algorithm accroding to the definition
+    int n = points.size() - 1;
+	double i_factorial = 1;
+	double n_factorial = 1;
+    for (int j = 1; j <= n; ++j) n_factorial *= j;
+    double n_minus_i_factorial = n_factorial;
+    double pow_t = 1;
+    double pow_1_minus_t = std::pow(1 - t, n);
+	Point2D qt = { 0, 0 };
 
-	return Point2D(0, 0);
+    for (int i = 0; i <= n; ++i) {
+		if (i != 0) i_factorial *= i;
 
+		double bt = n_factorial / (i_factorial * n_minus_i_factorial) * pow_t * pow_1_minus_t;
+		qt.x += bt * points[i].x;
+		qt.y += bt * points[i].y;
+
+        if (n - i != 0) n_minus_i_factorial /= n - i;
+		pow_1_minus_t /= 1 - t;
+		pow_t *= t;
+    }
+    return qt;
 }
 
 Point2D BezierCurve::implementTask2(const std::vector<Point2D> &points, const double &t) const
@@ -137,5 +157,5 @@ Point2D BezierCurve::implementTask2(const std::vector<Point2D> &points, const do
 	// Note: you should use Point2D::lerp().
 
 	return Point2D(0, 0);
-	
+
 }
