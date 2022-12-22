@@ -58,7 +58,7 @@ void Simulator::addNewParticle(float x, float y)
 	//Add a new particle to the system
 	m_x[m_numParticles] = glm::vec2(x, y);
 	m_v[m_numParticles] = glm::vec2(0, 0);
-	
+
 	//Connect with existing particles
 	const auto &newParticle = m_x[m_numParticles];
 	for (unsigned int i = 0; i < m_numParticles; ++i)
@@ -70,7 +70,7 @@ void Simulator::addNewParticle(float x, float y)
 			m_restLength[m_numParticles][i] = 0.1;
 		}
 	}
-	
+
 	++m_numParticles;
 
 }
@@ -78,7 +78,7 @@ void Simulator::addNewParticle(float x, float y)
 void Simulator::simulate()
 {
 	static constexpr float dt = 0.0001f;
-	static constexpr glm::vec2 gravity = glm::vec2(0.0f, -9.8f);
+	static glm::vec2 gravity = glm::vec2(0.0f, -9.8f);
 
 	// TODO: for each particle i, calculate the force f, and then update the m_v[i]
 	for (unsigned int i = 0; i < m_numParticles; ++i)
