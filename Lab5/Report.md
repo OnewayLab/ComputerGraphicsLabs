@@ -86,3 +86,11 @@ Point2D BezierCurve::implementTask2(const std::vector<Point2D> &points, const do
 [视频演示](./Video/Task2.mp4)
 
 ## Task3 谈谈对 Bézier 曲线的理解，Bézier 曲线的缺点是什么
+
+Bézier 曲线是曲线的一种参数化表示形式，给定一系列控制点，根据 Bernstein 基函数将它们线性组合起来就得到曲线上的点。Bézier 曲线的控制点跟曲线形状之间有一定的关系，所以这种方式可以比较直观地表示曲线。
+
+Bézier 曲线的缺点有：
+
+* 曲线复杂时计算量大；
+* 改变一个控制点会牵动整条曲线；
+* 合并两条曲线很难得到一条平滑的新曲线。
