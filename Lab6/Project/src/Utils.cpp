@@ -88,10 +88,13 @@ void Simulator::simulate()
 		// You should use m_restLength[i][j], m_stiffness, m_x, dt, and m_particleMass herein
 		for (unsigned int j = 0; j < m_numParticles; ++j)
 		{
-
+			if (m_restLength[i][j] != 0)
+				force += m_stiffness * (m_restLength[i][j] - glm::distance(m_x[i], m_x[j])) * (m_x[i] - m_x[j]) / glm::distance(m_x[i], m_x[j]);
 		}
-		//Update the m_v[i]
-
+		// Update the m_x[i]
+		if (i != 0) m_x[i] += dt * m_v[i];
+		// Update the m_v[i]
+		m_v[i] += dt * force / m_particleMass;
 	}
 
 	// Collide with the ground
@@ -103,12 +106,5 @@ void Simulator::simulate()
 			m_x[i].y = 0.0f;
 			m_v[i].y = 0.0f;
 		}
-	}
-
-	// Todo: update the position m_x[i] using m_v[i]
-	// Note: you should use the time step dt
-	for (unsigned int i = 1; i < m_numParticles; ++i)
-	{
-
 	}
 }
