@@ -63,7 +63,7 @@ $$
 
 代码如下：
 
-```
+```C++
 static constexpr float dt = 0.0001f;
 static glm::vec2 gravity = glm::vec2(0.0f, -9.8f);
 
@@ -86,3 +86,33 @@ for (unsigned int i = 0; i < m_numParticles; ++i) {
 ![1671800007196](assets/1671800007196.png)
 
 [演示视频](./Video/Task2.mp4)
+
+## Task 3 按照给定阻尼系数衰减质点速度
+
+为了模拟现实中质点动能因摩擦而减小的效果，使用以下衰减公式对速度进行衰减：
+
+$$
+\boldsymbol{v}=\boldsymbol{v}\cdot e^{-\Delta t\cdot \mu}
+$$
+
+其中，$\mu$ 是阻尼系数。
+
+在更新质点位置之前使用上述公式衰减质点速度：
+
+```C++
+...
+// Update the m_v[i]
+m_v[i] += dt * force / m_particleMass;
+// Decay the m_v[i]
+double e = 2.71828;
+m_v[i] *= std::pow(e, -dt * m_damping);
+// Update the m_x[i]
+if (i != 0) m_x[i] += dt * m_v[i];
+...
+```
+
+效果如下：
+
+![1671802785022](assets/1671802785022.png)
+
+[视频演示](./Video/Task3.mp4)

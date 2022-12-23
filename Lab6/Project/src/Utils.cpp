@@ -1,6 +1,7 @@
 #include "Utils.h"
 
 #include <ctime>
+#include <cmath>
 
 Simulator::Simulator()
 	: m_numParticles(0)
@@ -78,6 +79,7 @@ void Simulator::addNewParticle(float x, float y)
 void Simulator::simulate()
 {
 	static constexpr float dt = 0.0001f;
+	static constexpr double e = 2.71828;
 	static glm::vec2 gravity = glm::vec2(0.0f, -9.8f);
 
 	// TODO: for each particle i, calculate the force f, and then update the m_v[i]
@@ -93,6 +95,8 @@ void Simulator::simulate()
 		}
 		// Update the m_v[i]
 		m_v[i] += dt * force / m_particleMass;
+		// Decay the m_v[i]
+		m_v[i] *= std::pow(e, -dt * m_damping);
 		// Update the m_x[i]
 		if (i != 0) m_x[i] += dt * m_v[i];
 	}
