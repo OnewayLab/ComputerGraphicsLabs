@@ -18,7 +18,7 @@ public:
 
 	void drawRopeAndPoint(WindowsApp *winApp);
 
-private:	
+private:
 	unsigned int m_numParticles;
 	const unsigned int m_maxNumParticles = 256;
 
@@ -27,7 +27,7 @@ private:
 	std::vector<std::vector<float>> m_restLength;
 
 	float m_damping = 5.0f;
-	float m_stiffness = 8000;
+	float m_stiffness = 16000;
 	const float m_particleMass = 1.0f;
 	const float m_connectRadius = 0.15f;
 
