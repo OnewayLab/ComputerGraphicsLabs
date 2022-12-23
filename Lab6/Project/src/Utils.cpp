@@ -91,10 +91,10 @@ void Simulator::simulate()
 			if (m_restLength[i][j] != 0)
 				force += m_stiffness * (m_restLength[i][j] - glm::distance(m_x[i], m_x[j])) * (m_x[i] - m_x[j]) / glm::distance(m_x[i], m_x[j]);
 		}
-		// Update the m_x[i]
-		if (i != 0) m_x[i] += dt * m_v[i];
 		// Update the m_v[i]
 		m_v[i] += dt * force / m_particleMass;
+		// Update the m_x[i]
+		if (i != 0) m_x[i] += dt * m_v[i];
 	}
 
 	// Collide with the ground
